@@ -31,6 +31,29 @@ export default defineConfig({
             type: 'image/svg+xml',
             purpose: 'any maskable'
           }
+        ],
+        shortcuts: [
+          {
+            name: 'Valider Matin 🟢',
+            short_name: 'Matin 🟢',
+            description: 'Valider instantanément les médicaments du matin',
+            url: './?action=validate_Matin',
+            icons: [{ src: 'pwa-192x192.svg', sizes: '192x192', type: 'image/svg+xml' }]
+          },
+          {
+            name: 'Valider Midi ☀️',
+            short_name: 'Midi ☀️',
+            description: 'Valider instantanément les médicaments du midi',
+            url: './?action=validate_Midi',
+            icons: [{ src: 'pwa-192x192.svg', sizes: '192x192', type: 'image/svg+xml' }]
+          },
+          {
+            name: 'Valider Soir 🌅',
+            short_name: 'Soir 🌅',
+            description: 'Valider instantanément les médicaments du soir',
+            url: './?action=validate_Soir',
+            icons: [{ src: 'pwa-192x192.svg', sizes: '192x192', type: 'image/svg+xml' }]
+          }
         ]
       },
       workbox: {

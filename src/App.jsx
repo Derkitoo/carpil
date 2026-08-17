@@ -18,10 +18,11 @@ import {
 } from './data/initialData';
 
 import { Heart, Hand, MessageSquare, Camera, FileText, ArrowLeft } from 'lucide-react';
+import confetti from 'canvas-confetti';
 
 export default function App() {
   const [appMode, setAppMode] = useState('papa'); // 'papa' (Dad's 1-Card view) | 'caregiver' (Child/Admin hub)
-  const [caregiverTab, setCaregiverTab] = useState('dashboard'); // 'dashboard' | 'handScanner' | 'voiceAgent' | 'scanner' | 'report'
+  const [caregiverTab, setCaregiverTab] = useState('dashboard');
 
   const [speechEnabled, setSpeechEnabled] = useState(true);
   const [highContrast, setHighContrast] = useState(false);
@@ -37,6 +38,31 @@ export default function App() {
 
   const [activeModalData, setActiveModalData] = useState(null);
   const [toastMessage, setToastMessage] = useState(null);
+
+  // Check URL parameters for PWA Manifest Quick-Action Shortcut triggers
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const action = urlParams.get('action');
+
+    if (action && action.startsWith('validate_')) {
+      const slotToValidate = action.replace('validate_', '');
+      const dayKey = 'mar'; // Mardi
+
+      handleValidateSlot(dayKey, slotToValidate);
+      
+      confetti({
+        particleCount: 120,
+        spread: 80,
+        origin: { y: 0.5 }
+      });
+
+      speakText(`Raccourci exécuté : Traitement du ${slotToValidate} validé instantanément !`);
+      showToast(`⚡ Validé via Raccourci Écran d'Accueil (${slotToValidate}) !`);
+
+      // Clean up URL parameter
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  }, []);
 
   useEffect(() => {
     const unsubscribe = CloudSyncService.subscribeToUpdates(
