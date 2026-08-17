@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192" width="192" height="192">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0284c7"/>
+      <stop offset="100%" stop-color="#16a34a"/>
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="6" stdDeviation="8" flood-opacity="0.25"/>
+    </filter>
+  </defs>
+
+  <!-- Background rounded box -->
+  <rect width="192" height="192" rx="44" fill="url(#bgGrad)"/>
+  
+  <!-- Outer Glow Ring -->
+  <circle cx="96" cy="96" r="64" fill="none" stroke="#ffffff" stroke-opacity="0.25" stroke-width="4"/>
+
+  <!-- Pill & Heart Medical Icon Group -->
+  <g filter="url(#shadow)" transform="translate(46, 46)">
+    <!-- Pill Capsule Body Left Half -->
+    <path d="M 25 15 C 10 15 10 40 25 55 L 50 80 C 65 95 90 95 105 80 Z" fill="#ffffff"/>
+    <!-- Pill Capsule Body Right Half -->
+    <path d="M 50 80 L 75 105 C 90 120 115 120 130 105 C 145 90 145 65 130 50 L 105 25 Z" fill="#e0f2fe" opacity="0.9"/>
+    
+    <!-- Medical Cross / Heart Symbol in Center -->
+    <circle cx="50" cy="50" r="18" fill="#0284c7"/>
+    <path d="M 50 42 L 50 58 M 42 50 L 58 50" stroke="#ffffff" stroke-width="5" stroke-linecap="round"/>
+  </g>
+</svg>
