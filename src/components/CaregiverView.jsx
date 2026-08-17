@@ -1,18 +1,28 @@
 import React, { useState } from 'react';
-import { Heart, CheckCircle2, AlertTriangle, BellRing, ShoppingBag, Plus, Activity, Calendar, ShieldCheck, Send, MessageSquare } from 'lucide-react';
+import { Heart, CheckCircle2, AlertTriangle, ShoppingBag, Plus, Activity, Send, MessageSquare, UserCheck, Edit3, Save, X } from 'lucide-react';
 
 export default function CaregiverView({ 
   medications, 
   takenSlots, 
-  patientProfile, 
+  patientProfile,
+  onUpdatePatientProfile,
   symptomsLog, 
   onAddSymptom,
   onSendNotification 
 }) {
+  const [editingProfile, setEditingProfile] = useState(false);
+  const [profileForm, setProfileForm] = useState(patientProfile);
+
   const [newSymptomDetail, setNewSymptomDetail] = useState('');
   const [newSymptomType, setNewSymptomType] = useState('Sensations');
   const [customMsg, setCustomMsg] = useState('');
   const [sentNotice, setSentNotice] = useState('');
+
+  const handleSaveProfile = (e) => {
+    e.preventDefault();
+    onUpdatePatientProfile(profileForm);
+    setEditingProfile(false);
+  };
 
   const handleAddSymptomSubmit = (e) => {
     e.preventDefault();
@@ -29,7 +39,7 @@ export default function CaregiverView({
 
   const handleQuickMsg = (txt) => {
     onSendNotification(txt);
-    setSentNotice(`Message envoyé à Papa : "${txt}" ❤️`);
+    setSentNotice(`Message envoyé à ${patientProfile.name} : "${txt}" ❤️`);
     setTimeout(() => setSentNotice(''), 4000);
   };
 
@@ -39,11 +49,11 @@ export default function CaregiverView({
       {/* 1. CAREGIVER HEADER DASHBOARD */}
       <div className="card" style={{
         background: 'linear-gradient(135deg, #0f172a, #1e293b)',
-        color: 'white',
+        color: '#ffffff',
         borderRadius: '28px',
         padding: '1.75rem',
         border: 'none',
-        boxShadow: '0 16px 35px -8px rgba(15, 23, 42, 0.35)'
+        boxShadow: 'var(--shadow-lg)'
       }}>
         
         <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '1.5rem' }}>
@@ -53,15 +63,15 @@ export default function CaregiverView({
                 👥 Espace Proche & Aide-Soignant
               </span>
               <span style={{ fontSize: '0.85rem', opacity: 0.8, fontWeight: 600 }}>
-                ● Connecté au pilulier en temps réel
+                ● Connecté en direct
               </span>
             </div>
 
-            <h2 style={{ fontSize: '1.9rem', fontWeight: 800, fontFamily: 'var(--font-family-heading)', margin: 0, letterSpacing: '-0.02em' }}>
+            <h2 style={{ fontSize: '1.9rem', fontWeight: 800, fontFamily: 'var(--font-display)', margin: 0, letterSpacing: '-0.02em' }}>
               Tableau de Bord Sérénité de {patientProfile.name}
             </h2>
             <p style={{ opacity: 0.9, marginTop: '0.35rem', fontSize: '1.05rem', fontWeight: 500 }}>
-              Suivez l'observance du traitement de votre papa en direct.
+              Suivez l'observance du traitement en direct.
             </p>
           </div>
 
@@ -69,7 +79,7 @@ export default function CaregiverView({
           <div style={{
             background: 'rgba(255, 255, 255, 0.08)',
             backdropFilter: 'blur(12px)',
-            border: '1px solid rgba(255,255,255,0.15)',
+            border: '1px solid rgba(255, 255, 255, 0.15)',
             padding: '1.1rem 1.6rem',
             borderRadius: '20px',
             textAlign: 'center',
@@ -78,7 +88,7 @@ export default function CaregiverView({
             <div style={{ fontSize: '0.82rem', textTransform: 'uppercase', opacity: 0.8, fontWeight: 700, letterSpacing: '0.05em' }}>
               Observance
             </div>
-            <div style={{ fontSize: '2.4rem', fontWeight: 800, color: '#4ade80', fontFamily: 'var(--font-family-heading)', lineHeight: 1.1 }}>
+            <div style={{ fontSize: '2.4rem', fontWeight: 800, color: '#34c759', fontFamily: 'var(--font-display)', lineHeight: 1.1 }}>
               {patientProfile.adherenceScore}%
             </div>
             <div style={{ fontSize: '0.78rem', color: '#94a3b8', fontWeight: 600, marginTop: '0.2rem' }}>
@@ -92,52 +102,172 @@ export default function CaregiverView({
           marginTop: '1.25rem',
           padding: '0.85rem 1.1rem',
           borderRadius: '16px',
-          background: 'rgba(34, 197, 94, 0.15)',
-          border: '1px solid rgba(34, 197, 94, 0.3)',
+          background: 'rgba(52, 199, 89, 0.18)',
+          border: '1px solid rgba(52, 199, 89, 0.3)',
           display: 'flex',
           alignItems: 'center',
           gap: '0.75rem'
         }}>
-          <CheckCircle2 size={22} color="#4ade80" flexShrink={0} />
+          <CheckCircle2 size={22} color="#34c759" flexShrink={0} />
           <div style={{ fontSize: '0.95rem', fontWeight: 700 }}>
-            Dernière activité : Papa a validé sa prise de comprimés du <strong>Matin à 08:12</strong>.
+            Dernière activité : Prise des médicaments du <strong>Matin validée à 08:12</strong>.
           </div>
         </div>
 
       </div>
 
 
-      {/* 2. SEND A GENTLE MESSAGE TO PAPA */}
+      {/* 2. DYNAMIC PATIENT PROFILE CARD (EDITABLE) */}
       <div className="card">
-        <h3 style={{ fontSize: '1.35rem', fontWeight: 800, fontFamily: 'var(--font-family-heading)', marginBottom: '0.4rem', display: 'flex', alignItems: 'center', gap: '0.5rem', letterSpacing: '-0.015em' }}>
-          <MessageSquare size={22} color="var(--primary)" /> Envoyer un Message Doux à Papa
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.1rem' }}>
+          <div>
+            <h3 style={{ fontSize: '1.35rem', fontWeight: 800, fontFamily: 'var(--font-display)', margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <UserCheck size={22} color="var(--accent-primary)" /> Fiche du Patient ({patientProfile.name})
+            </h3>
+            <p style={{ color: 'var(--system-text-secondary)', fontSize: '0.9rem', fontWeight: 500, margin: '0.2rem 0 0 0' }}>
+              Personnalisez le nom et les coordonnées médicales du patient.
+            </p>
+          </div>
+
+          {!editingProfile && (
+            <button
+              onClick={() => setEditingProfile(true)}
+              style={{
+                padding: '0.5rem 0.95rem',
+                borderRadius: '12px',
+                background: 'var(--accent-primary-light)',
+                color: 'var(--accent-primary)',
+                fontWeight: 800,
+                fontSize: '0.88rem',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.35rem'
+              }}
+            >
+              <Edit3 size={16} /> Modifier Fiche
+            </button>
+          )}
+        </div>
+
+        {editingProfile ? (
+          <form onSubmit={handleSaveProfile} style={{ display: 'flex', flexDirection: 'column', gap: '1rem', background: 'var(--system-bg)', padding: '1.25rem', borderRadius: '20px', border: '1px solid var(--system-card-border)' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem' }}>
+              <div>
+                <label style={{ fontSize: '0.85rem', fontWeight: 800, color: 'var(--system-text-secondary)' }}>Nom complet du patient</label>
+                <input
+                  type="text"
+                  value={profileForm.name}
+                  onChange={(e) => setProfileForm({ ...profileForm, name: e.target.value })}
+                  style={{ width: '100%', padding: '0.7rem', borderRadius: '12px', border: '1px solid var(--system-card-border)', fontWeight: 700, marginTop: '0.25rem', outline: 'none' }}
+                  required
+                />
+              </div>
+
+              <div>
+                <label style={{ fontSize: '0.85rem', fontWeight: 800, color: 'var(--system-text-secondary)' }}>Âge</label>
+                <input
+                  type="number"
+                  value={profileForm.age}
+                  onChange={(e) => setProfileForm({ ...profileForm, age: parseInt(e.target.value) || 0 })}
+                  style={{ width: '100%', padding: '0.7rem', borderRadius: '12px', border: '1px solid var(--system-card-border)', fontWeight: 700, marginTop: '0.25rem', outline: 'none' }}
+                />
+              </div>
+
+              <div>
+                <label style={{ fontSize: '0.85rem', fontWeight: 800, color: 'var(--system-text-secondary)' }}>Médecin Traitant</label>
+                <input
+                  type="text"
+                  value={profileForm.doctor}
+                  onChange={(e) => setProfileForm({ ...profileForm, doctor: e.target.value })}
+                  style={{ width: '100%', padding: '0.7rem', borderRadius: '12px', border: '1px solid var(--system-card-border)', fontWeight: 700, marginTop: '0.25rem', outline: 'none' }}
+                />
+              </div>
+
+              <div>
+                <label style={{ fontSize: '0.85rem', fontWeight: 800, color: 'var(--system-text-secondary)' }}>Contact Proche Urgence</label>
+                <input
+                  type="text"
+                  value={profileForm.emergencyContact}
+                  onChange={(e) => setProfileForm({ ...profileForm, emergencyContact: e.target.value })}
+                  style={{ width: '100%', padding: '0.7rem', borderRadius: '12px', border: '1px solid var(--system-card-border)', fontWeight: 700, marginTop: '0.25rem', outline: 'none' }}
+                />
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end', marginTop: '0.5rem' }}>
+              <button
+                type="button"
+                onClick={() => setEditingProfile(false)}
+                style={{ padding: '0.65rem 1.1rem', borderRadius: '12px', background: 'transparent', color: 'var(--system-text-secondary)', fontWeight: 700 }}
+              >
+                Annuler
+              </button>
+              <button
+                type="submit"
+                className="btn-primary"
+                style={{ padding: '0.65rem 1.35rem', borderRadius: '12px', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '0.4rem' }}
+              >
+                <Save size={16} /> Enregistrer la Fiche
+              </button>
+            </div>
+          </form>
+        ) : (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', background: 'var(--system-bg)', padding: '1rem 1.25rem', borderRadius: '18px', border: '1px solid var(--system-card-border)' }}>
+            <div>
+              <div style={{ fontSize: '0.78rem', color: 'var(--system-text-secondary)', fontWeight: 700 }}>Nom & Âge</div>
+              <div style={{ fontWeight: 800, fontSize: '1.1rem' }}>{patientProfile.name} ({patientProfile.age} ans)</div>
+            </div>
+
+            <div>
+              <div style={{ fontSize: '0.78rem', color: 'var(--system-text-secondary)', fontWeight: 700 }}>Médecin Referent</div>
+              <div style={{ fontWeight: 800, fontSize: '1rem' }}>{patientProfile.doctor}</div>
+            </div>
+
+            <div>
+              <div style={{ fontSize: '0.78rem', color: 'var(--system-text-secondary)', fontWeight: 700 }}>Contact Urgence</div>
+              <div style={{ fontWeight: 800, fontSize: '1rem' }}>{patientProfile.emergencyContact}</div>
+            </div>
+
+            <div>
+              <div style={{ fontSize: '0.78rem', color: 'var(--system-text-secondary)', fontWeight: 700 }}>Allergies Notées</div>
+              <div style={{ fontWeight: 800, fontSize: '0.95rem', color: 'var(--accent-danger)' }}>{patientProfile.allergies.join(', ')}</div>
+            </div>
+          </div>
+        )}
+      </div>
+
+
+      {/* 3. SEND A GENTLE MESSAGE TO PAPA */}
+      <div className="card">
+        <h3 style={{ fontSize: '1.35rem', fontWeight: 800, fontFamily: 'var(--font-display)', marginBottom: '0.4rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <MessageSquare size={22} color="var(--accent-primary)" /> Envoyer un Message Doux à {patientProfile.name}
         </h3>
-        <p style={{ color: 'var(--text-muted)', fontSize: '0.92rem', fontWeight: 500, marginBottom: '1.1rem' }}>
-          Votre message s'affichera directement sur l'écran de son application sous forme d'un rappel bienveillant.
+        <p style={{ color: 'var(--system-text-secondary)', fontSize: '0.92rem', fontWeight: 500, marginBottom: '1.1rem' }}>
+          Votre message s'affichera directement sur son écran sous forme d'un rappel bienveillant.
         </p>
 
         {sentNotice && (
-          <div style={{ background: 'var(--success-light)', color: 'var(--success-dark)', padding: '0.75rem 1rem', borderRadius: '14px', fontWeight: 700, marginBottom: '1rem' }}>
+          <div style={{ background: 'var(--accent-success-light)', color: 'var(--accent-success)', padding: '0.75rem 1rem', borderRadius: '14px', fontWeight: 700, marginBottom: '1rem' }}>
             {sentNotice}
           </div>
         )}
 
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.65rem', marginBottom: '1rem' }}>
           <button 
-            onClick={() => handleQuickMsg("Bravo pour les cachets du matin ! Passé une belle journée ❤️")}
-            style={{ padding: '0.6rem 0.95rem', borderRadius: '12px', background: 'var(--primary-light)', color: 'var(--primary-dark)', fontWeight: 700, border: '1px solid var(--primary)', fontSize: '0.9rem' }}
+            onClick={() => handleQuickMsg("Bravo pour les cachets du matin ! Passe une belle journée ❤️")}
+            style={{ padding: '0.6rem 0.95rem', borderRadius: '12px', background: 'var(--accent-primary-light)', color: 'var(--accent-primary)', fontWeight: 700, border: '1px solid var(--accent-primary)', fontSize: '0.9rem' }}
           >
             ❤️ Bravo pour ce matin !
           </button>
           <button 
             onClick={() => handleQuickMsg("N'oublie pas de bien boire un grand verre d'eau 💧")}
-            style={{ padding: '0.6rem 0.95rem', borderRadius: '12px', background: '#f0f9ff', color: '#0369a1', fontWeight: 700, border: '1px solid #0284c7', fontSize: '0.9rem' }}
+            style={{ padding: '0.6rem 0.95rem', borderRadius: '12px', background: 'var(--accent-primary-light)', color: 'var(--accent-primary)', fontWeight: 700, border: '1px solid var(--accent-primary)', fontSize: '0.9rem' }}
           >
             💧 Pense à bien boire de l'eau
           </button>
           <button 
             onClick={() => handleQuickMsg("Je passe te voir ce soir à 18h30 ! Grosses bises")}
-            style={{ padding: '0.6rem 0.95rem', borderRadius: '12px', background: '#fffbeb', color: '#b45309', fontWeight: 700, border: '1px solid #f59e0b', fontSize: '0.9rem' }}
+            style={{ padding: '0.6rem 0.95rem', borderRadius: '12px', background: 'var(--accent-warning-light)', color: 'var(--accent-warning)', fontWeight: 700, border: '1px solid var(--accent-warning)', fontSize: '0.9rem' }}
           >
             👋 Je passe te voir ce soir !
           </button>
@@ -153,10 +283,10 @@ export default function CaregiverView({
               flex: 1,
               padding: '0.8rem 1rem',
               borderRadius: '14px',
-              border: '1px solid var(--card-border)',
+              border: '1px solid var(--system-card-border)',
               fontSize: '0.95rem',
               outline: 'none',
-              background: 'var(--bg-main)'
+              background: 'var(--system-bg)'
             }}
           />
           <button type="submit" className="btn-primary" style={{ padding: '0.8rem 1.35rem', borderRadius: '14px', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
@@ -166,13 +296,13 @@ export default function CaregiverView({
       </div>
 
 
-      {/* 3. PHARMACY REFILL TRACKER (STOCK DES BOÎTES) */}
+      {/* 4. PHARMACY REFILL TRACKER (STOCK DES BOÎTES) */}
       <div className="card">
         <div style={{ marginBottom: '1.1rem' }}>
-          <h3 style={{ fontSize: '1.35rem', fontWeight: 800, fontFamily: 'var(--font-family-heading)', margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem', letterSpacing: '-0.015em' }}>
-            <ShoppingBag size={22} color="#f59e0b" /> Suivi du Stock Pharmacie & Renouvellements
+          <h3 style={{ fontSize: '1.35rem', fontWeight: 800, fontFamily: 'var(--font-display)', margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <ShoppingBag size={22} color="var(--accent-warning)" /> Suivi du Stock Pharmacie & Renouvellements
           </h3>
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.92rem', fontWeight: 500, margin: '0.2rem 0 0 0' }}>
+          <p style={{ color: 'var(--system-text-secondary)', fontSize: '0.92rem', fontWeight: 500, margin: '0.2rem 0 0 0' }}>
             Alertes de stock calculées automatiquement selon la posologie.
           </p>
         </div>
@@ -185,17 +315,17 @@ export default function CaregiverView({
             return (
               <div key={med.id} style={{
                 padding: '1.1rem',
-                borderRadius: '18px',
-                background: isLowStock ? '#fffbeb' : 'var(--bg-main)',
-                border: isLowStock ? '1.5px solid #f59e0b' : '1px solid var(--card-border)',
+                borderRadius: '20px',
+                background: isLowStock ? 'var(--accent-warning-light)' : 'var(--system-bg)',
+                border: isLowStock ? '1.5px solid var(--accent-warning)' : '1px solid var(--system-card-border)',
                 display: 'flex',
                 flexDirection: 'column',
                 justifyContent: 'space-between'
               }}>
                 <div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                    <span style={{ fontWeight: 800, fontSize: '1.1rem', color: 'var(--text-main)' }}>
-                      {med.name} <span style={{ color: 'var(--primary)', fontSize: '0.92rem' }}>{med.dosage}</span>
+                    <span style={{ fontWeight: 800, fontSize: '1.1rem', color: 'var(--system-text)' }}>
+                      {med.name} <span style={{ color: 'var(--accent-primary)', fontSize: '0.92rem' }}>{med.dosage}</span>
                     </span>
                     {isLowStock && (
                       <span className="badge badge-warning">
@@ -204,7 +334,7 @@ export default function CaregiverView({
                     )}
                   </div>
 
-                  <div style={{ margin: '0.75rem 0', fontSize: '0.9rem', color: 'var(--text-muted)', fontWeight: 600 }}>
+                  <div style={{ margin: '0.75rem 0', fontSize: '0.9rem', color: 'var(--system-text-secondary)', fontWeight: 600 }}>
                     Stock : <strong>{med.stock} {med.unit}</strong> (~{daysLeft} jours)
                   </div>
 
@@ -213,7 +343,7 @@ export default function CaregiverView({
                     <div style={{
                       height: '100%',
                       width: `${Math.min(100, (med.stock / med.totalStock) * 100)}%`,
-                      background: isLowStock ? '#d97706' : 'var(--success)'
+                      background: isLowStock ? 'var(--accent-warning)' : 'var(--accent-success)'
                     }} />
                   </div>
                 </div>
@@ -222,19 +352,19 @@ export default function CaregiverView({
                   <button 
                     onClick={() => alert(`Rappel enregistré : Penser à faire renouveler l'ordonnance de ${med.name} à la pharmacie.`)}
                     style={{
-                      padding: '0.55rem',
+                      padding: '0.6rem',
                       borderRadius: '12px',
-                      background: '#f59e0b',
-                      color: 'white',
+                      background: 'var(--accent-warning)',
+                      color: '#ffffff',
                       fontWeight: 800,
-                      fontSize: '0.85rem',
+                      fontSize: '0.88rem',
                       textAlign: 'center'
                     }}
                   >
                     🛒 Commander à la Pharmacie
                   </button>
                 ) : (
-                  <span style={{ fontSize: '0.8rem', color: 'var(--success-dark)', fontWeight: 700, textAlign: 'right' }}>
+                  <span style={{ fontSize: '0.8rem', color: 'var(--accent-success)', fontWeight: 800, textAlign: 'right' }}>
                     ✓ Stock Suffisant
                   </span>
                 )}
@@ -245,21 +375,21 @@ export default function CaregiverView({
       </div>
 
 
-      {/* 4. HEALTH JOURNAL & SYMPTOMS LOG */}
+      {/* 5. HEALTH JOURNAL & SYMPTOMS LOG */}
       <div className="card">
-        <h3 style={{ fontSize: '1.35rem', fontWeight: 800, fontFamily: 'var(--font-family-heading)', marginBottom: '0.4rem', display: 'flex', alignItems: 'center', gap: '0.5rem', letterSpacing: '-0.015em' }}>
-          <Activity size={22} color="#10b981" /> Journal des Symptômes & Tension
+        <h3 style={{ fontSize: '1.35rem', fontWeight: 800, fontFamily: 'var(--font-display)', marginBottom: '0.4rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <Activity size={22} color="var(--accent-success)" /> Journal des Symptômes & Tension
         </h3>
-        <p style={{ color: 'var(--text-muted)', fontSize: '0.92rem', fontWeight: 500, marginBottom: '1.1rem' }}>
+        <p style={{ color: 'var(--system-text-secondary)', fontSize: '0.92rem', fontWeight: 500, marginBottom: '1.1rem' }}>
           Consignez les constantes pour la prochaine consultation médicale.
         </p>
 
         {/* Add Symptom Form */}
-        <form onSubmit={handleAddSymptomSubmit} style={{ display: 'flex', flexWrap: 'wrap', gap: '0.65rem', marginBottom: '1.25rem', background: 'var(--bg-main)', padding: '0.85rem', borderRadius: '16px', border: '1px solid var(--card-border)' }}>
+        <form onSubmit={handleAddSymptomSubmit} style={{ display: 'flex', flexWrap: 'wrap', gap: '0.65rem', marginBottom: '1.25rem', background: 'var(--system-bg)', padding: '0.85rem', borderRadius: '18px', border: '1px solid var(--system-card-border)' }}>
           <select
             value={newSymptomType}
             onChange={(e) => setNewSymptomType(e.target.value)}
-            style={{ padding: '0.65rem', borderRadius: '12px', border: '1px solid var(--card-border)', fontWeight: 700, fontSize: '0.9rem', outline: 'none' }}
+            style={{ padding: '0.65rem', borderRadius: '12px', border: '1px solid var(--system-card-border)', fontWeight: 700, fontSize: '0.9rem', outline: 'none' }}
           >
             <option value="Tension Artérielle">Tension Artérielle</option>
             <option value="Sensations">Sensations / Vertiges</option>
@@ -272,7 +402,7 @@ export default function CaregiverView({
             placeholder="Détails (ex: Tension à 13/8)..."
             value={newSymptomDetail}
             onChange={(e) => setNewSymptomDetail(e.target.value)}
-            style={{ flex: 1, minWidth: '200px', padding: '0.65rem 0.85rem', borderRadius: '12px', border: '1px solid var(--card-border)', fontSize: '0.9rem', outline: 'none' }}
+            style={{ flex: 1, minWidth: '200px', padding: '0.65rem 0.85rem', borderRadius: '12px', border: '1px solid var(--system-card-border)', fontSize: '0.9rem', outline: 'none' }}
           />
 
           <button type="submit" className="btn-success" style={{ padding: '0.65rem 1.1rem', borderRadius: '12px', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.9rem' }}>
@@ -284,19 +414,19 @@ export default function CaregiverView({
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
           {symptomsLog.map((item) => (
             <div key={item.id} style={{
-              padding: '0.8rem 1rem',
-              borderRadius: '14px',
-              background: 'var(--bg-main)',
-              border: '1px solid var(--card-border)',
+              padding: '0.85rem 1.1rem',
+              borderRadius: '16px',
+              background: 'var(--system-bg)',
+              border: '1px solid var(--system-card-border)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between'
             }}>
               <div>
-                <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', fontWeight: 700 }}>
+                <span style={{ fontSize: '0.78rem', color: 'var(--system-text-secondary)', fontWeight: 700 }}>
                   {item.date}
                 </span>
-                <div style={{ fontWeight: 800, fontSize: '1rem', color: 'var(--text-main)' }}>
+                <div style={{ fontWeight: 800, fontSize: '1rem', color: 'var(--system-text)' }}>
                   {item.type} : <span style={{ fontWeight: 600 }}>{item.detail}</span>
                 </div>
               </div>

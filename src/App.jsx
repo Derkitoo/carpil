@@ -24,13 +24,25 @@ export default function App() {
   const [appMode, setAppMode] = useState('papa'); // 'papa' (Dad's 1-Card view) | 'caregiver' (Child/Admin hub)
   const [caregiverTab, setCaregiverTab] = useState('dashboard');
 
-  const [speechEnabled, setSpeechEnabled] = useState(true);
-  const [highContrast, setHighContrast] = useState(false);
-  const [textSize, setTextSize] = useState(1);
+  // Accessibility State with LocalStorage Persistence
+  const [speechEnabled, setSpeechEnabled] = useState(() => {
+    return localStorage.getItem('carepill_speech') !== 'false';
+  });
+  const [highContrast, setHighContrast] = useState(() => {
+    return localStorage.getItem('carepill_contrast') === 'true';
+  });
+  const [textSize, setTextSize] = useState(() => {
+    return parseFloat(localStorage.getItem('carepill_textsize')) || 1;
+  });
 
   const [medications, setMedications] = useState(INITIAL_MEDICATIONS);
   const [symptomsLog, setSymptomsLog] = useState(INITIAL_SYMPTOMS_LOG);
-  const [patientProfile, setPatientProfile] = useState(PATIENT_PROFILE);
+
+  // Dynamic Patient Profile with LocalStorage Persistence
+  const [patientProfile, setPatientProfile] = useState(() => {
+    const saved = localStorage.getItem('carepill_profile');
+    return saved ? JSON.parse(saved) : PATIENT_PROFILE;
+  });
 
   const [takenSlots, setTakenSlots] = useState(() => 
     CloudSyncService.getTakenSlots({ "mar-Matin": true })
@@ -56,7 +68,7 @@ export default function App() {
         origin: { y: 0.5 }
       });
 
-      speakText(`Raccourci exécuté : Traitement du ${slotToValidate} validé instantanément !`);
+      speakText(`Raccourci exécuté : Traitement du ${slotToValidate} validé instantanément pour ${patientProfile.name} !`);
       showToast(`⚡ Validé via Raccourci Écran d'Accueil (${slotToValidate}) !`);
 
       // Clean up URL parameter
@@ -72,27 +84,48 @@ export default function App() {
       },
       (noticeMsg) => {
         showToast(`Message de votre enfant : "${noticeMsg}"`);
-        speakText(`Message de votre fils Thomas : ${noticeMsg}`);
+        speakText(`Message pour ${patientProfile.name} : ${noticeMsg}`);
       }
     );
     return () => unsubscribe();
-  }, []);
+  }, [patientProfile.name]);
 
   useEffect(() => {
     document.documentElement.style.setProperty('--senior-scale', textSize);
+    localStorage.setItem('carepill_textsize', textSize.toString());
+
     if (highContrast) {
       document.body.classList.add('high-contrast');
+      localStorage.setItem('carepill_contrast', 'true');
     } else {
       document.body.classList.remove('high-contrast');
+      localStorage.setItem('carepill_contrast', 'false');
     }
-  }, [textSize, highContrast]);
+
+    localStorage.setItem('carepill_speech', speechEnabled.toString());
+  }, [textSize, highContrast, speechEnabled]);
+
+  const handleUpdatePatientProfile = (newProfile) => {
+    setPatientProfile(newProfile);
+    localStorage.setItem('carepill_profile', JSON.stringify(newProfile));
+    showToast(`Fiche de ${newProfile.name} mise à jour avec succès !`);
+  };
 
   const speakText = (text) => {
     if (!speechEnabled || !('speechSynthesis' in window)) return;
     window.speechSynthesis.cancel();
+
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = 'fr-FR';
     utterance.rate = 0.92;
+
+    // Highest quality French voice detection
+    const voices = window.speechSynthesis.getVoices();
+    const frVoice = voices.find(v => v.lang.includes('fr') || v.lang.includes('FR'));
+    if (frVoice) {
+      utterance.voice = frVoice;
+    }
+
     window.speechSynthesis.speak(utterance);
   };
 
@@ -118,8 +151,8 @@ export default function App() {
 
   const handleSendNotification = (textMsg) => {
     CloudSyncService.sendNotice(textMsg);
-    showToast(`Message transmis à Papa : "${textMsg}"`);
-    speakText(`Message de votre fils Thomas : ${textMsg}`);
+    showToast(`Message transmis à ${patientProfile.name} : "${textMsg}"`);
+    speakText(`Message de votre enfant : ${textMsg}`);
   };
 
   return (
@@ -197,7 +230,7 @@ export default function App() {
                   boxShadow: 'var(--shadow-sm)'
                 }}
               >
-                <ArrowLeft size={18} /> Revenir à l'écran de Papa 👴
+                <ArrowLeft size={18} /> Revenir à l'écran de {patientProfile.name} 👴
               </button>
             </div>
 
@@ -234,6 +267,7 @@ export default function App() {
                 medications={medications}
                 takenSlots={takenSlots}
                 patientProfile={patientProfile}
+                onUpdatePatientProfile={handleUpdatePatientProfile}
                 symptomsLog={symptomsLog}
                 onAddSymptom={handleAddSymptom}
                 onSendNotification={handleSendNotification}
