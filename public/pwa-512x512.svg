@@ -1,29 +1,21 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
-  <defs>
-    <linearGradient id="bgGrad512" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#0284c7"/>
-      <stop offset="100%" stop-color="#16a34a"/>
-    </linearGradient>
-    <filter id="shadow512" x="-10%" y="-10%" width="120%" height="120%">
-      <feDropShadow dx="0" dy="16" stdDeviation="20" flood-opacity="0.3"/>
-    </filter>
-  </defs>
-
-  <!-- Maskable full-bleed background -->
-  <rect width="512" height="512" rx="116" fill="url(#bgGrad512)"/>
+  <rect width="512" height="512" rx="112" fill="#0f172a"/>
   
-  <!-- Outer Decorative Ring -->
-  <circle cx="256" cy="256" r="170" fill="none" stroke="#ffffff" stroke-opacity="0.2" stroke-width="10"/>
-
-  <!-- Main Medical Pill Group -->
-  <g filter="url(#shadow512)" transform="translate(116, 116)">
-    <!-- Pill Capsule Left -->
-    <path d="M 70 40 C 30 40 30 110 70 150 L 140 220 C 180 260 250 260 290 220 Z" fill="#ffffff"/>
-    <!-- Pill Capsule Right -->
-    <path d="M 140 220 L 210 290 C 250 330 320 330 360 290 C 400 250 400 180 360 140 L 290 70 Z" fill="#e0f2fe" opacity="0.9"/>
+  <!-- Subtle inner background glow -->
+  <circle cx="256" cy="256" r="180" fill="#0284c7" opacity="0.18"/>
+  
+  <!-- Main Glossy Capsule Pill (Rotated 45 degrees) -->
+  <g transform="translate(256,256) rotate(-45) translate(-256,-256)">
+    <!-- Pill Left Half (Cyan) -->
+    <path d="M 138,256 A 70,70 0 0,1 208,186 L 256,186 L 256,326 L 208,326 A 70,70 0 0,1 138,256 Z" fill="#0284c7" />
     
-    <!-- Central Medical Cross -->
-    <circle cx="140" cy="140" r="48" fill="#0284c7"/>
-    <path d="M 140 116 L 140 164 M 116 140 L 164 140" stroke="#ffffff" stroke-width="14" stroke-linecap="round"/>
+    <!-- Pill Right Half (Emerald Green) -->
+    <path d="M 256,186 L 304,186 A 70,70 0 0,1 374,256 A 70,70 0 0,1 304,326 L 256,326 Z" fill="#10b981" />
+    
+    <!-- Pill Center Highlight / Separator -->
+    <line x1="256" y1="186" x2="256" y2="326" stroke="#ffffff" stroke-width="6" opacity="0.65"/>
+    
+    <!-- Glossy Top Shine Reflection -->
+    <path d="M 170,206 Q 256,196 342,206 Q 256,218 170,206 Z" fill="#ffffff" opacity="0.45" />
   </g>
 </svg>

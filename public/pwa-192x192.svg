@@ -1,29 +1,21 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192" width="192" height="192">
-  <defs>
-    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#0284c7"/>
-      <stop offset="100%" stop-color="#16a34a"/>
-    </linearGradient>
-    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
-      <feDropShadow dx="0" dy="6" stdDeviation="8" flood-opacity="0.25"/>
-    </filter>
-  </defs>
-
-  <!-- Background rounded box -->
-  <rect width="192" height="192" rx="44" fill="url(#bgGrad)"/>
+  <rect width="192" height="192" rx="42" fill="#0f172a"/>
   
-  <!-- Outer Glow Ring -->
-  <circle cx="96" cy="96" r="64" fill="none" stroke="#ffffff" stroke-opacity="0.25" stroke-width="4"/>
-
-  <!-- Pill & Heart Medical Icon Group -->
-  <g filter="url(#shadow)" transform="translate(46, 46)">
-    <!-- Pill Capsule Body Left Half -->
-    <path d="M 25 15 C 10 15 10 40 25 55 L 50 80 C 65 95 90 95 105 80 Z" fill="#ffffff"/>
-    <!-- Pill Capsule Body Right Half -->
-    <path d="M 50 80 L 75 105 C 90 120 115 120 130 105 C 145 90 145 65 130 50 L 105 25 Z" fill="#e0f2fe" opacity="0.9"/>
+  <!-- Subtle inner background glow -->
+  <circle cx="96" cy="96" r="70" fill="#0284c7" opacity="0.15"/>
+  
+  <!-- Main Glossy Capsule Pill (Rotated 45 degrees) -->
+  <g transform="translate(96,96) rotate(-45) translate(-96,-96)">
+    <!-- Pill Left Half (Cyan) -->
+    <path d="M 52,96 A 26,26 0 0,1 78,70 L 96,70 L 96,122 L 78,122 A 26,26 0 0,1 52,96 Z" fill="#0284c7" />
     
-    <!-- Medical Cross / Heart Symbol in Center -->
-    <circle cx="50" cy="50" r="18" fill="#0284c7"/>
-    <path d="M 50 42 L 50 58 M 42 50 L 58 50" stroke="#ffffff" stroke-width="5" stroke-linecap="round"/>
+    <!-- Pill Right Half (Emerald Green) -->
+    <path d="M 96,70 L 114,70 A 26,26 0 0,1 140,96 A 26,26 0 0,1 114,122 L 96,122 Z" fill="#10b981" />
+    
+    <!-- Pill Center Highlight / Separator -->
+    <line x1="96" y1="70" x2="96" y2="122" stroke="#ffffff" stroke-width="2.5" opacity="0.6"/>
+    
+    <!-- Glossy Top Shine Reflection -->
+    <path d="M 64,78 Q 96,74 128,78 Q 96,82 64,78 Z" fill="#ffffff" opacity="0.45" />
   </g>
 </svg>
