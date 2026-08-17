@@ -1,6 +1,7 @@
 import React from 'react';
 import { CheckCircle2, Volume2, ShieldCheck, Heart, Sparkles, UserCheck } from 'lucide-react';
 import confetti from 'canvas-confetti';
+import HomeWidgetSimulator from './HomeWidgetSimulator';
 
 export default function SeniorPapaView({ 
   medications, 
@@ -11,7 +12,6 @@ export default function SeniorPapaView({
   patientName,
   onSwitchToCaregiver
 }) {
-  // Determine current slot based on real hour or simulation
   const currentHour = new Date().getHours();
   let currentSlotKey = 'Matin';
   if (currentHour >= 11 && currentHour < 17) currentSlotKey = 'Midi';
@@ -22,7 +22,6 @@ export default function SeniorPapaView({
   const currentDayLabel = 'Mardi 17 Août';
   const isTaken = takenSlots[`${currentDayKey}-${currentSlotKey}`];
 
-  // Filter meds for current detected slot
   const currentMeds = medications.filter(med => med.timeSlots.includes(currentSlotKey));
 
   const handleValidateCurrent = () => {
@@ -49,7 +48,7 @@ export default function SeniorPapaView({
     <div style={{ maxWidth: '600px', margin: '0 auto', minHeight: '80vh', display: 'flex', flexDirection: 'column', justifyContent: 'center' }} className="animate-slide-up">
       
       {/* Discreet Caregiver Access Toggle Top Bar */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', opacity: 0.85 }}>
           <span style={{ fontSize: '1.2rem' }}>👴</span>
           <span style={{ fontSize: '0.95rem', fontWeight: 800, color: 'var(--system-text)' }}>Bonjour {patientName}</span>
@@ -75,6 +74,14 @@ export default function SeniorPapaView({
         </button>
       </div>
 
+      {/* 1-TAP HOME SCREEN WIDGET SIMULATOR BANNER */}
+      <HomeWidgetSimulator
+        takenSlots={takenSlots}
+        onValidateSlot={onValidateSlot}
+        speakText={speakText}
+        timeSlots={timeSlots}
+      />
+
       {/* THE ONE SINGLE HERO CARD FOR PAPA */}
       <div className="card" style={{
         background: isTaken 
@@ -82,7 +89,7 @@ export default function SeniorPapaView({
           : 'linear-gradient(135deg, #0071e3, #005bb5)',
         color: '#ffffff',
         borderRadius: '36px',
-        padding: '2.25rem 1.75rem',
+        padding: '2rem 1.65rem',
         border: 'none',
         boxShadow: 'var(--shadow-lg)',
         textAlign: 'center',
@@ -90,7 +97,7 @@ export default function SeniorPapaView({
         overflow: 'hidden'
       }}>
 
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1.5rem' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1.35rem' }}>
           
           {/* Header Info */}
           <div>
@@ -108,17 +115,17 @@ export default function SeniorPapaView({
             </span>
 
             <h2 style={{
-              fontSize: '2.2rem',
+              fontSize: '2.1rem',
               fontWeight: 800,
               fontFamily: 'var(--font-display)',
-              margin: '0.2rem 0 0.5rem 0',
+              margin: '0.2rem 0 0.45rem 0',
               lineHeight: 1.15,
               letterSpacing: '-0.03em'
             }}>
               {isTaken ? `Prise du ${currentSlotKey} Validée ! 🎉` : `Vos médicaments du ${currentSlotKey}`}
             </h2>
 
-            <p style={{ fontSize: '1.15rem', opacity: 0.95, fontWeight: 500, margin: 0 }}>
+            <p style={{ fontSize: '1.1rem', opacity: 0.95, fontWeight: 500, margin: 0 }}>
               {isTaken 
                 ? "Vous avez pris tous vos comprimés. Thomas a bien reçu la confirmation !"
                 : `Vous avez ${currentMeds.length} comprimé(s) à prendre actuellement.`
@@ -178,21 +185,21 @@ export default function SeniorPapaView({
                 background: '#34c759',
                 color: '#ffffff',
                 border: '3px solid #ffffff',
-                minHeight: '72px',
-                fontSize: '1.4rem'
+                minHeight: '70px',
+                fontSize: '1.35rem'
               }}
             >
-              <CheckCircle2 size={34} />
+              <CheckCircle2 size={32} />
               <span>J'AI PRIS MES CACHETS 🟢</span>
             </button>
           ) : (
             <div style={{
               background: 'rgba(255, 255, 255, 0.25)',
               backdropFilter: 'blur(10px)',
-              padding: '1.25rem',
+              padding: '1.15rem',
               borderRadius: '24px',
               width: '100%',
-              fontSize: '1.2rem',
+              fontSize: '1.15rem',
               fontWeight: 800
             }}>
               ✨ Passez une très belle journée Joseph ! ❤️
@@ -206,15 +213,15 @@ export default function SeniorPapaView({
               background: 'transparent',
               color: '#ffffff',
               border: 'none',
-              fontSize: '1rem',
+              fontSize: '0.95rem',
               fontWeight: 700,
               display: 'flex',
               alignItems: 'center',
-              gap: '0.5rem',
+              gap: '0.4rem',
               opacity: 0.95
             }}
           >
-            <Volume2 size={22} /> Écouter les consignes vocales
+            <Volume2 size={20} /> Écouter les consignes vocales
           </button>
 
         </div>
