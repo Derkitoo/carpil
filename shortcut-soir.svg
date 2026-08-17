@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192" width="192" height="192">
+  <rect width="192" height="192" rx="44" fill="#0f172a" />
+  <!-- Moon -->
+  <path d="M 110,36 A 32,32 0 1,0 138,88 A 36,36 0 1,1 110,36 Z" fill="#f1f5f9" />
+  <!-- Stars -->
+  <circle cx="54" cy="48" r="4" fill="#facc15" />
+  <circle cx="148" cy="42" r="3" fill="#facc15" />
+  <circle cx="140" cy="95" r="4" fill="#facc15" />
+  <!-- Soir Badge -->
+  <rect x="26" y="128" width="140" height="42" rx="14" fill="#8b5cf6" />
+  <text x="96" y="155" font-family="Arial, sans-serif" font-size="22" font-weight="900" fill="#ffffff" text-anchor="middle">SOIR 🌅</text>
+</svg>
