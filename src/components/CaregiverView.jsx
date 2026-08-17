@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
-import { Heart, CheckCircle2, AlertTriangle, ShoppingBag, Plus, Activity, Send, MessageSquare, UserCheck, Edit3, Save, X } from 'lucide-react';
+import { Heart, CheckCircle2, AlertTriangle, ShoppingBag, Plus, Activity, Send, MessageSquare, UserCheck, Edit3, Save, Sparkles, QrCode } from 'lucide-react';
+import { PredictiveRiskService } from '../services/predictiveRiskService';
+import PharmacyPassQR from './PharmacyPassQR';
 
 export default function CaregiverView({ 
   medications, 
@@ -12,11 +14,15 @@ export default function CaregiverView({
 }) {
   const [editingProfile, setEditingProfile] = useState(false);
   const [profileForm, setProfileForm] = useState(patientProfile);
+  const [showPharmacyPass, setShowPharmacyPass] = useState(false);
 
   const [newSymptomDetail, setNewSymptomDetail] = useState('');
   const [newSymptomType, setNewSymptomType] = useState('Sensations');
   const [customMsg, setCustomMsg] = useState('');
   const [sentNotice, setSentNotice] = useState('');
+
+  // Generate predictive AI health risk alerts
+  const riskAlerts = PredictiveRiskService.analyzeRiskProfile(patientProfile, medications, symptomsLog, takenSlots);
 
   const handleSaveProfile = (e) => {
     e.preventDefault();
@@ -117,7 +123,49 @@ export default function CaregiverView({
       </div>
 
 
-      {/* 2. DYNAMIC PATIENT PROFILE CARD (EDITABLE) */}
+      {/* 2. PREDICTIVE HEALTH RISK AI ALERTS HUB */}
+      {riskAlerts.length > 0 && (
+        <div className="card" style={{ border: '2px solid var(--accent-warning)', background: 'var(--accent-warning-light)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', marginBottom: '1rem' }}>
+            <Sparkles size={24} color="var(--accent-warning)" />
+            <h3 style={{ fontSize: '1.35rem', fontWeight: 800, fontFamily: 'var(--font-display)', margin: 0, color: '#b45309' }}>
+              IA Médicale Prédictive — Alertes de Vigilance ({riskAlerts.length})
+            </h3>
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+            {riskAlerts.map(alert => (
+              <div key={alert.id} style={{
+                background: 'var(--system-card-bg)',
+                padding: '1.1rem',
+                borderRadius: '18px',
+                border: '1px solid var(--system-card-border)'
+              }}>
+                <div style={{ fontWeight: 800, fontSize: '1.1rem', color: 'var(--system-text)', marginBottom: '0.25rem' }}>
+                  {alert.title}
+                </div>
+                <div style={{ fontSize: '0.92rem', color: 'var(--system-text-secondary)', fontWeight: 600, marginBottom: '0.5rem' }}>
+                  {alert.description}
+                </div>
+                <div style={{
+                  background: 'var(--system-bg)',
+                  padding: '0.65rem 0.85rem',
+                  borderRadius: '12px',
+                  fontSize: '0.88rem',
+                  fontWeight: 700,
+                  color: 'var(--accent-primary)',
+                  border: '1px solid var(--system-card-border)'
+                }}>
+                  💡 Recommandation IA : {alert.recommendation}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+
+      {/* 3. DYNAMIC PATIENT PROFILE CARD (EDITABLE) */}
       <div className="card">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.1rem' }}>
           <div>
@@ -237,7 +285,11 @@ export default function CaregiverView({
       </div>
 
 
-      {/* 3. SEND A GENTLE MESSAGE TO PAPA */}
+      {/* 4. PASS E-PHARMACIE QR HUB */}
+      <PharmacyPassQR patientProfile={patientProfile} medications={medications} />
+
+
+      {/* 5. SEND A GENTLE MESSAGE TO PAPA */}
       <div className="card">
         <h3 style={{ fontSize: '1.35rem', fontWeight: 800, fontFamily: 'var(--font-display)', marginBottom: '0.4rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           <MessageSquare size={22} color="var(--accent-primary)" /> Envoyer un Message Doux à {patientProfile.name}
@@ -296,86 +348,7 @@ export default function CaregiverView({
       </div>
 
 
-      {/* 4. PHARMACY REFILL TRACKER (STOCK DES BOÎTES) */}
-      <div className="card">
-        <div style={{ marginBottom: '1.1rem' }}>
-          <h3 style={{ fontSize: '1.35rem', fontWeight: 800, fontFamily: 'var(--font-display)', margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <ShoppingBag size={22} color="var(--accent-warning)" /> Suivi du Stock Pharmacie & Renouvellements
-          </h3>
-          <p style={{ color: 'var(--system-text-secondary)', fontSize: '0.92rem', fontWeight: 500, margin: '0.2rem 0 0 0' }}>
-            Alertes de stock calculées automatiquement selon la posologie.
-          </p>
-        </div>
-
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '1rem' }}>
-          {medications.map((med) => {
-            const daysLeft = Math.floor(med.stock / med.dailyDose);
-            const isLowStock = daysLeft <= 7;
-
-            return (
-              <div key={med.id} style={{
-                padding: '1.1rem',
-                borderRadius: '20px',
-                background: isLowStock ? 'var(--accent-warning-light)' : 'var(--system-bg)',
-                border: isLowStock ? '1.5px solid var(--accent-warning)' : '1px solid var(--system-card-border)',
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'space-between'
-              }}>
-                <div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                    <span style={{ fontWeight: 800, fontSize: '1.1rem', color: 'var(--system-text)' }}>
-                      {med.name} <span style={{ color: 'var(--accent-primary)', fontSize: '0.92rem' }}>{med.dosage}</span>
-                    </span>
-                    {isLowStock && (
-                      <span className="badge badge-warning">
-                        ⚠️ Stock Faible
-                      </span>
-                    )}
-                  </div>
-
-                  <div style={{ margin: '0.75rem 0', fontSize: '0.9rem', color: 'var(--system-text-secondary)', fontWeight: 600 }}>
-                    Stock : <strong>{med.stock} {med.unit}</strong> (~{daysLeft} jours)
-                  </div>
-
-                  {/* Progress bar */}
-                  <div style={{ height: '7px', background: 'rgba(0,0,0,0.08)', borderRadius: '4px', overflow: 'hidden', marginBottom: '0.75rem' }}>
-                    <div style={{
-                      height: '100%',
-                      width: `${Math.min(100, (med.stock / med.totalStock) * 100)}%`,
-                      background: isLowStock ? 'var(--accent-warning)' : 'var(--accent-success)'
-                    }} />
-                  </div>
-                </div>
-
-                {isLowStock ? (
-                  <button 
-                    onClick={() => alert(`Rappel enregistré : Penser à faire renouveler l'ordonnance de ${med.name} à la pharmacie.`)}
-                    style={{
-                      padding: '0.6rem',
-                      borderRadius: '12px',
-                      background: 'var(--accent-warning)',
-                      color: '#ffffff',
-                      fontWeight: 800,
-                      fontSize: '0.88rem',
-                      textAlign: 'center'
-                    }}
-                  >
-                    🛒 Commander à la Pharmacie
-                  </button>
-                ) : (
-                  <span style={{ fontSize: '0.8rem', color: 'var(--accent-success)', fontWeight: 800, textAlign: 'right' }}>
-                    ✓ Stock Suffisant
-                  </span>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
-
-      {/* 5. HEALTH JOURNAL & SYMPTOMS LOG */}
+      {/* 6. HEALTH JOURNAL & SYMPTOMS LOG */}
       <div className="card">
         <h3 style={{ fontSize: '1.35rem', fontWeight: 800, fontFamily: 'var(--font-display)', marginBottom: '0.4rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           <Activity size={22} color="var(--accent-success)" /> Journal des Symptômes & Tension
@@ -384,7 +357,6 @@ export default function CaregiverView({
           Consignez les constantes pour la prochaine consultation médicale.
         </p>
 
-        {/* Add Symptom Form */}
         <form onSubmit={handleAddSymptomSubmit} style={{ display: 'flex', flexWrap: 'wrap', gap: '0.65rem', marginBottom: '1.25rem', background: 'var(--system-bg)', padding: '0.85rem', borderRadius: '18px', border: '1px solid var(--system-card-border)' }}>
           <select
             value={newSymptomType}
@@ -399,7 +371,7 @@ export default function CaregiverView({
 
           <input
             type="text"
-            placeholder="Détails (ex: Tension à 13/8)..."
+            placeholder="Détails (ex: Vertige après marche)..."
             value={newSymptomDetail}
             onChange={(e) => setNewSymptomDetail(e.target.value)}
             style={{ flex: 1, minWidth: '200px', padding: '0.65rem 0.85rem', borderRadius: '12px', border: '1px solid var(--system-card-border)', fontSize: '0.9rem', outline: 'none' }}
@@ -410,7 +382,6 @@ export default function CaregiverView({
           </button>
         </form>
 
-        {/* List of Logged Symptoms */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
           {symptomsLog.map((item) => (
             <div key={item.id} style={{

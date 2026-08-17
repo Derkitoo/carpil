@@ -1,7 +1,9 @@
-import React from 'react';
-import { CheckCircle2, Volume2, ShieldCheck, Heart, Sparkles, UserCheck } from 'lucide-react';
+import React, { useState } from 'react';
+import { CheckCircle2, Volume2, ShieldCheck, Heart, Sparkles, UserCheck, PhoneCall } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import HomeWidgetSimulator from './HomeWidgetSimulator';
+import SmartPillboxNFC from './SmartPillboxNFC';
+import PhoneCallSimulator from './PhoneCallSimulator';
 
 export default function SeniorPapaView({ 
   medications = [], 
@@ -12,6 +14,8 @@ export default function SeniorPapaView({
   patientName = 'Papa',
   onSwitchToCaregiver
 }) {
+  const [showCallModal, setShowCallModal] = useState(false);
+
   const currentHour = new Date().getHours();
   let currentSlotKey = 'Matin';
   if (currentHour >= 11 && currentHour < 17) currentSlotKey = 'Midi';
@@ -65,24 +69,44 @@ export default function SeniorPapaView({
           <span style={{ fontSize: '0.95rem', fontWeight: 800, color: 'var(--system-text)' }}>Bonjour {patientName}</span>
         </div>
 
-        <button
-          onClick={onSwitchToCaregiver}
-          style={{
-            padding: '0.45rem 0.85rem',
-            borderRadius: '12px',
-            background: 'var(--system-card-bg)',
-            border: '1px solid var(--system-card-border)',
-            color: 'var(--system-text-secondary)',
-            fontSize: '0.8rem',
-            fontWeight: 700,
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.35rem',
-            boxShadow: 'var(--shadow-sm)'
-          }}
-        >
-          <Heart size={14} color="var(--accent-primary)" /> Espace Enfant
-        </button>
+        <div style={{ display: 'flex', gap: '0.4rem' }}>
+          <button
+            onClick={() => setShowCallModal(true)}
+            style={{
+              padding: '0.45rem 0.75rem',
+              borderRadius: '12px',
+              background: 'var(--accent-warning-light)',
+              color: 'var(--accent-warning)',
+              border: '1px solid var(--accent-warning)',
+              fontSize: '0.8rem',
+              fontWeight: 800,
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.35rem'
+            }}
+          >
+            <PhoneCall size={14} /> Rappel IA Vocal
+          </button>
+
+          <button
+            onClick={onSwitchToCaregiver}
+            style={{
+              padding: '0.45rem 0.85rem',
+              borderRadius: '12px',
+              background: 'var(--system-card-bg)',
+              border: '1px solid var(--system-card-border)',
+              color: 'var(--system-text-secondary)',
+              fontSize: '0.8rem',
+              fontWeight: 700,
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.35rem',
+              boxShadow: 'var(--shadow-sm)'
+            }}
+          >
+            <Heart size={14} color="var(--accent-primary)" /> Espace Enfant
+          </button>
+        </div>
       </div>
 
       {/* 1-TAP HOME SCREEN WIDGET SIMULATOR BANNER */}
@@ -92,6 +116,14 @@ export default function SeniorPapaView({
         speakText={speakText}
         timeSlots={timeSlots}
         patientName={patientName}
+      />
+
+      {/* TOUCHLESS NFC PILLBOX SCANNER BANNER */}
+      <SmartPillboxNFC
+        onValidateSlot={onValidateSlot}
+        speakText={speakText}
+        patientName={patientName}
+        timeSlots={timeSlots}
       />
 
       {/* THE ONE SINGLE HERO CARD FOR PAPA */}
@@ -239,6 +271,15 @@ export default function SeniorPapaView({
         </div>
 
       </div>
+
+      {/* Simulated Automated Caring Phone Call Modal */}
+      <PhoneCallSimulator
+        isOpen={showCallModal}
+        onClose={() => setShowCallModal(false)}
+        patientName={patientName}
+        onValidateSlot={onValidateSlot}
+        speakText={speakText}
+      />
 
     </div>
   );
