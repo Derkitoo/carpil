@@ -1,7 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Outfit:wght@500;600;700;800&display=swap');
 
 :root {
-  /* Color Palette: Warm, Medical, Ultra-Clear & Reassuring */
   --primary: #0284c7;
   --primary-hover: #0369a1;
   --primary-light: #e0f2fe;
@@ -25,6 +24,8 @@
   --senior-scale: 1;
   --font-family-body: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
   --font-family-heading: 'Outfit', 'Plus Jakarta Sans', sans-serif;
+  
+  --bottom-nav-height: 72px;
 }
 
 body.high-contrast {
@@ -47,6 +48,7 @@ body.high-contrast {
 
 html {
   font-size: calc(16px * var(--senior-scale));
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
@@ -56,6 +58,13 @@ body {
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   min-height: 100vh;
+  padding-bottom: calc(var(--bottom-nav-height) + 16px);
+}
+
+@media (min-width: 768px) {
+  body {
+    padding-bottom: 0;
+  }
 }
 
 button {
@@ -63,72 +72,71 @@ button {
   cursor: pointer;
   border: none;
   outline: none;
-  transition: all 0.2s ease;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  -webkit-tap-highlight-color: transparent;
 }
 
-/* Animations */
-@keyframes pulse-gentle {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.03); }
+/* Fluid Container Utility */
+.app-container {
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 1rem 0.85rem;
 }
 
-@keyframes slide-up {
-  from { opacity: 0; transform: translateY(16px); }
-  to { opacity: 1; transform: translateY(0); }
+@media (min-width: 640px) {
+  .app-container {
+    padding: 1.5rem 1.25rem;
+  }
 }
 
-.animate-pulse-gentle {
-  animation: pulse-gentle 2.5s infinite ease-in-out;
-}
-
-.animate-slide-up {
-  animation: slide-up 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-/* Glass & Card styles */
+/* Card Container */
 .card {
   background: var(--card-bg);
   border: 1.5px solid var(--border);
   border-radius: 20px;
-  padding: 1.5rem;
+  padding: 1.15rem;
   box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.05);
+}
+
+@media (min-width: 640px) {
+  .card {
+    padding: 1.5rem;
+  }
 }
 
 .card-clickable {
   cursor: pointer;
 }
 
-.card-clickable:hover {
+.card-clickable:active, .card-clickable:hover {
   border-color: var(--primary);
   transform: translateY(-2px);
   box-shadow: 0 10px 25px -5px rgba(2, 132, 199, 0.15);
 }
 
-/* Custom Scrollbars */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-::-webkit-scrollbar-track {
-  background: var(--bg-main);
-}
-::-webkit-scrollbar-thumb {
-  background: var(--border);
-  border-radius: 4px;
-}
-
-/* Senior Friendly Big Buttons */
+/* Senior Friendly Fluid Big Buttons */
 .btn-giant {
-  padding: 1.25rem 2rem;
-  font-size: 1.35rem;
+  width: 100%;
+  min-height: 60px;
+  padding: 1rem 1.25rem;
+  font-size: 1.2rem;
   font-weight: 800;
   border-radius: 18px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.75rem;
-  box-shadow: 0 8px 25px rgba(22, 163, 74, 0.3);
+  gap: 0.65rem;
+  box-shadow: 0 6px 20px rgba(22, 163, 74, 0.25);
   letter-spacing: -0.01em;
+  text-align: center;
+}
+
+@media (min-width: 640px) {
+  .btn-giant {
+    font-size: 1.35rem;
+    padding: 1.25rem 2rem;
+  }
 }
 
 .btn-giant:active {
@@ -156,38 +164,123 @@ button {
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  padding: 0.35rem 0.85rem;
+  padding: 0.3rem 0.75rem;
   border-radius: 9999px;
-  font-size: 0.875rem;
+  font-size: 0.825rem;
   font-weight: 700;
 }
 
-.badge-success {
-  background: var(--success-light);
-  color: var(--success);
-}
-.badge-warning {
-  background: var(--warning-light);
-  color: var(--warning);
-}
-.badge-danger {
-  background: var(--danger-light);
-  color: var(--danger);
-}
-.badge-primary {
-  background: var(--primary-light);
-  color: var(--primary);
-}
+.badge-success { background: var(--success-light); color: var(--success); }
+.badge-warning { background: var(--warning-light); color: var(--warning); }
+.badge-danger { background: var(--danger-light); color: var(--danger); }
+.badge-primary { background: var(--primary-light); color: var(--primary); }
 
-/* Custom Modal Backdrop */
+/* Custom Modal Backdrop & Safe Mobile Drawer */
 .modal-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(15, 23, 42, 0.6);
-  backdrop-filter: blur(6px);
+  background: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(8px);
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: center;
   z-index: 100;
-  padding: 1rem;
+  padding: 0;
+}
+
+@media (min-width: 640px) {
+  .modal-backdrop {
+    align-items: center;
+    padding: 1rem;
+  }
+}
+
+.modal-content {
+  width: 100%;
+  max-width: 560px;
+  max-height: 90vh;
+  overflow-y: auto;
+  background: var(--card-bg);
+  border-radius: 28px 28px 0 0;
+  padding: 1.5rem 1.25rem;
+}
+
+@media (min-width: 640px) {
+  .modal-content {
+    border-radius: 24px;
+    padding: 2rem;
+  }
+}
+
+/* Grid Layout Utilities */
+.grid-responsive-meds {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+
+@media (min-width: 640px) {
+  .grid-responsive-meds {
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  }
+}
+
+/* Mobile Bottom Navigation Bar */
+.mobile-bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: var(--bottom-nav-height);
+  background: var(--card-bg);
+  border-top: 1.5px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  z-index: 90;
+  box-shadow: 0 -4px 20px rgba(0,0,0,0.08);
+  padding: 0 0.5rem;
+}
+
+@media (min-width: 768px) {
+  .mobile-bottom-nav {
+    display: none;
+  }
+}
+
+.mobile-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.2rem;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0.4rem 0.5rem;
+  border-radius: 12px;
+  flex: 1;
+  height: 100%;
+}
+
+.mobile-nav-item.active {
+  color: var(--primary);
+}
+
+.mobile-nav-item.active .nav-icon-container {
+  background: var(--primary-light);
+  color: var(--primary);
+  border-radius: 12px;
+  padding: 0.2rem 0.6rem;
+}
+
+/* Animations */
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-slide-up {
+  animation: slide-up 0.25s ease-out;
 }
