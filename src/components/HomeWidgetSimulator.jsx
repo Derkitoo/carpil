@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { CheckCircle2, Pill, Clock, Sparkles, Smartphone } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
-export default function HomeWidgetSimulator({ takenSlots, onValidateSlot, speakText, timeSlots }) {
+export default function HomeWidgetSimulator({ takenSlots, onValidateSlot, speakText, timeSlots, patientName }) {
   const currentHour = new Date().getHours();
   let currentSlotKey = 'Matin';
   if (currentHour >= 11 && currentHour < 17) currentSlotKey = 'Midi';
@@ -22,11 +22,11 @@ export default function HomeWidgetSimulator({ takenSlots, onValidateSlot, speakT
       origin: { y: 0.7 }
     });
 
-    speakText(`Validation par Widget effectuée ! Traitement du ${currentSlotKey} enregistré.`);
+    speakText(`Validation par Widget effectuée ! Traitement du ${currentSlotKey} enregistré pour ${patientName || 'votre traitement'}.`);
   };
 
   return (
-    <div style={{ margin: '1rem 0' }}>
+    <div style={{ margin: '0.85rem 0' }}>
       
       {/* Widget iOS / Android Floating Banner */}
       <div style={{
@@ -64,13 +64,13 @@ export default function HomeWidgetSimulator({ takenSlots, onValidateSlot, speakT
 
           <div>
             <div style={{ fontSize: '0.78rem', textTransform: 'uppercase', opacity: 0.85, fontWeight: 800, letterSpacing: '0.04em' }}>
-              Widget Écran d'Accueil
+              Widget Écran d'Accueil ({patientName || 'Papa'})
             </div>
             <div style={{ fontWeight: 800, fontSize: '1.1rem', lineHeight: 1.2 }}>
               {isTaken ? `Prise du ${currentSlotKey} Validée ✅` : `Traitement du ${currentSlotKey}`}
             </div>
             <div style={{ fontSize: '0.82rem', opacity: 0.9, fontWeight: 600 }}>
-              {isTaken ? 'Aucune action requise' : '3 comprimés à prendre'}
+              {isTaken ? 'Aucune action requise' : 'Comprimés en attente'}
             </div>
           </div>
         </div>

@@ -7,6 +7,7 @@ import HandPillScanner from './components/HandPillScanner';
 import VoiceAssistantAgent from './components/VoiceAssistantAgent';
 import DoctorReport from './components/DoctorReport';
 import CompartmentModal from './components/CompartmentModal';
+import OnboardingModal from './components/OnboardingModal';
 
 import { CloudSyncService } from './services/cloudSync';
 import { 
@@ -21,10 +22,9 @@ import { Heart, Hand, MessageSquare, Camera, FileText, ArrowLeft } from 'lucide-
 import confetti from 'canvas-confetti';
 
 export default function App() {
-  const [appMode, setAppMode] = useState('papa'); // 'papa' (Dad's 1-Card view) | 'caregiver' (Child/Admin hub)
+  const [appMode, setAppMode] = useState('papa');
   const [caregiverTab, setCaregiverTab] = useState('dashboard');
 
-  // Accessibility State with LocalStorage Persistence
   const [speechEnabled, setSpeechEnabled] = useState(() => {
     return localStorage.getItem('carepill_speech') !== 'false';
   });
@@ -38,7 +38,6 @@ export default function App() {
   const [medications, setMedications] = useState(INITIAL_MEDICATIONS);
   const [symptomsLog, setSymptomsLog] = useState(INITIAL_SYMPTOMS_LOG);
 
-  // Dynamic Patient Profile with LocalStorage Persistence
   const [patientProfile, setPatientProfile] = useState(() => {
     const saved = localStorage.getItem('carepill_profile');
     return saved ? JSON.parse(saved) : PATIENT_PROFILE;
@@ -51,6 +50,16 @@ export default function App() {
   const [activeModalData, setActiveModalData] = useState(null);
   const [toastMessage, setToastMessage] = useState(null);
 
+  // Onboarding Modal state
+  const [showOnboarding, setShowOnboarding] = useState(() => {
+    return localStorage.getItem('carepill_onboarding_done') !== 'true';
+  });
+
+  const handleCloseOnboarding = () => {
+    setShowOnboarding(false);
+    localStorage.setItem('carepill_onboarding_done', 'true');
+  };
+
   // Check URL parameters for PWA Manifest Quick-Action Shortcut triggers
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -58,7 +67,7 @@ export default function App() {
 
     if (action && action.startsWith('validate_')) {
       const slotToValidate = action.replace('validate_', '');
-      const dayKey = 'mar'; // Mardi
+      const dayKey = 'mar';
 
       handleValidateSlot(dayKey, slotToValidate);
       
@@ -69,12 +78,11 @@ export default function App() {
       });
 
       speakText(`Raccourci exécuté : Traitement du ${slotToValidate} validé instantanément pour ${patientProfile.name} !`);
-      showToast(`⚡ Validé via Raccourci Écran d'Accueil (${slotToValidate}) !`);
+      showToast(`🟢 Traitement du ${slotToValidate} validé avec succès pour ${patientProfile.name} !`);
 
-      // Clean up URL parameter
       window.history.replaceState({}, document.title, window.location.pathname);
     }
-  }, []);
+  }, [patientProfile.name]);
 
   useEffect(() => {
     const unsubscribe = CloudSyncService.subscribeToUpdates(
@@ -83,7 +91,7 @@ export default function App() {
         showToast("⚡ Synchronisation pilulier mise à jour en direct !");
       },
       (noticeMsg) => {
-        showToast(`Message de votre enfant : "${noticeMsg}"`);
+        showToast(`Message reçu : "${noticeMsg}"`);
         speakText(`Message pour ${patientProfile.name} : ${noticeMsg}`);
       }
     );
@@ -119,7 +127,6 @@ export default function App() {
     utterance.lang = 'fr-FR';
     utterance.rate = 0.92;
 
-    // Highest quality French voice detection
     const voices = window.speechSynthesis.getVoices();
     const frVoice = voices.find(v => v.lang.includes('fr') || v.lang.includes('FR'));
     if (frVoice) {
@@ -136,7 +143,7 @@ export default function App() {
     setTakenSlots(newSlots);
     CloudSyncService.saveTakenSlots(newSlots);
 
-    showToast(`✅ Case ${slotKey} du ${dayKey.toUpperCase()} certifiée et enregistrée !`);
+    showToast(`✅ Case ${slotKey} certifiée et enregistrée !`);
   };
 
   const showToast = (msg) => {
@@ -208,6 +215,7 @@ export default function App() {
             textSize={textSize}
             setTextSize={setTextSize}
             patientName={patientProfile.name}
+            onOpenOnboarding={() => setShowOnboarding(true)}
           />
 
           <main style={{ flex: 1, maxWidth: '1060px', width: '100%', margin: '0 auto', padding: '1.5rem 1rem' }}>
@@ -280,6 +288,7 @@ export default function App() {
                 onValidateSlot={handleValidateSlot}
                 speakText={speakText}
                 timeSlots={TIME_SLOTS}
+                patientName={patientProfile.name}
               />
             )}
 
@@ -290,6 +299,7 @@ export default function App() {
                 onAddSymptom={handleAddSymptom}
                 speakText={speakText}
                 timeSlots={TIME_SLOTS}
+                patientName={patientProfile.name}
               />
             )}
 
@@ -314,6 +324,13 @@ export default function App() {
           </main>
         </>
       )}
+
+      {/* Onboarding Guide Modal */}
+      <OnboardingModal
+        isOpen={showOnboarding}
+        onClose={handleCloseOnboarding}
+        patientName={patientProfile.name}
+      />
 
       {/* Compartment Sheet Popup */}
       <CompartmentModal

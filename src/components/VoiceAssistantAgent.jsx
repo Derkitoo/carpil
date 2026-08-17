@@ -1,116 +1,102 @@
 import React, { useState, useEffect } from 'react';
-import { Mic, MicOff, Volume2, Sparkles, MessageSquare, Heart, ShieldAlert, CheckCircle2, User } from 'lucide-react';
+import { Mic, MicOff, Volume2, Sparkles, Heart, Bot, Send } from 'lucide-react';
 
 export default function VoiceAssistantAgent({ 
   medications, 
   onValidateSlot, 
   onAddSymptom, 
   speakText, 
-  timeSlots 
+  timeSlots,
+  patientName 
 }) {
-  const [listening, setListening] = useState(false);
+  const [isListening, setIsListening] = useState(false);
   const [transcript, setTranscript] = useState('');
-  const [chatLog, setChatLog] = useState([
+  const [conversation, setConversation] = useState([
     {
-      sender: 'ai',
-      text: "Bonjour Joseph ! C'est votre assistant médical CarePill. Comment vous sentez-vous aujourd'hui ?",
-      time: 'Maintenant'
+      sender: 'agent',
+      text: `Bonjour ! Je suis "Le Petit-Fils Numérique". Comment puis-je aider ${patientName || 'votre proche'} aujourd'hui ? Vous pouvez me dire "J'ai pris mes cachets du matin" ou "J'ai mal à la tête".`
     }
   ]);
+  const [inputMessage, setInputMessage] = useState('');
 
-  // Speech Recognition setup
-  useEffect(() => {
-    let recognition = null;
-    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-      recognition = new SpeechRecognition();
-      recognition.lang = 'fr-FR';
-      recognition.continuous = false;
-      recognition.interimResults = false;
-
-      recognition.onstart = () => setListening(true);
-      recognition.onend = () => setListening(false);
-      recognition.onerror = (e) => {
-        console.warn("Speech recognition error:", e);
-        setListening(false);
-      };
-
-      recognition.onresult = (event) => {
-        const text = event.results[0][0].transcript;
-        setTranscript(text);
-        handleUserSpeech(text);
-      };
-    }
-
-    return () => {
-      if (recognition) recognition.abort();
-    };
-  }, []);
-
-  const startVoiceInput = () => {
-    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-      const recognition = new SpeechRecognition();
-      recognition.lang = 'fr-FR';
-      recognition.start();
-      setListening(true);
-
-      recognition.onresult = (event) => {
-        const text = event.results[0][0].transcript;
-        setTranscript(text);
-        handleUserSpeech(text);
-      };
-      recognition.onend = () => setListening(false);
-    } else {
-      // Fallback for browsers without SpeechRecognition API
-      const fakeText = prompt("Entrez votre message vocal pour l'Assistant IA (ex: J'ai pris mes cachets du soir / J'ai de la fièvre):");
-      if (fakeText) handleUserSpeech(fakeText);
-    }
-  };
-
-  const handleUserSpeech = (userText) => {
-    const timeNow = new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
-    
-    // Add user message to chat
-    setChatLog(prev => [...prev, { sender: 'user', text: userText, time: timeNow }]);
-
+  const processUserSpeech = (userText) => {
     const lower = userText.toLowerCase();
+    
+    setConversation(prev => [...prev, { sender: 'user', text: userText }]);
+
     let reply = "";
 
-    // Intention 1: Validation of pills
-    if (lower.includes('pris') || lower.includes('fait') || lower.includes('valider')) {
-      reply = "Formidable Joseph ! J'ai validé votre créneau de médicaments dans le pilulier et prévenu Thomas.";
+    if (lower.includes('matin') || lower.includes('cachet') || lower.includes('pris')) {
       onValidateSlot('mar', 'Matin');
-    } 
-    // Intention 2: Symptom or Pain reported
-    else if (lower.includes('mal') || lower.includes('fièvre') || lower.includes('vertige') || lower.includes('fatigué')) {
-      reply = "J'ai bien noté ce que vous ressentez. J'inscris ce symptôme dans votre journal de santé pour le Dr. Laurent et j'envoie une alerte douce à Thomas.";
+      reply = `Bravo ${patientName || ''} ! J'ai bien enregistré vos médicaments du matin dans le pilulier. Passez une magnifique journée !`;
+    } else if (lower.includes('midi') || lower.includes('déjeuner')) {
+      onValidateSlot('mar', 'Midi');
+      reply = `C'est noté ! Traitement du midi validé avec succès. Bon appétit !`;
+    } else if (lower.includes('soir') || lower.includes('dîner')) {
+      onValidateSlot('mar', 'Soir');
+      reply = `Très bien ! Traitement du soir enregistré. Reposez-vous bien.`;
+    } else if (lower.includes('mal') || lower.includes('tête') || lower.includes('vertige') || lower.includes('douleur')) {
       onAddSymptom({
         id: Date.now(),
-        date: `Aujourd'hui, ${timeNow}`,
-        type: 'Sensation Signalée',
-        detail: userText,
+        date: "Aujourd'hui, " + new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
+        type: lower.includes('tête') ? 'Céphalée' : 'Vertiges / Sensations',
+        detail: `Signalé par voix : "${userText}"`,
         status: 'warning'
       });
-    } 
-    // Intention 3: Question about medications
-    else if (lower.includes('quoi') || lower.includes('quel') || lower.includes('ce soir') || lower.includes('midi')) {
-      reply = "Pour la prise du soir, vous avez le Tahor 20mg à prendre au milieu du repas du soir avec un grand verre d'eau.";
-    } 
-    // Default friendly AI response
-    else {
-      reply = "Merci Joseph. Je suis toujours là pour veiller sur la bonne prise de vos médicaments. N'hésitez pas si vous avez la moindre question !";
+      reply = `J'ai noté ce symptôme dans le journal de santé pour le médecin. Pensez à vous allonger et à boire un verre d'eau.`;
+    } else {
+      reply = `J'ai bien entendu : "${userText}". Tout est sous contrôle pour votre suivi médical. Avez-vous besoin d'autre chose ?`;
     }
 
-    // Append AI reply to chat & speak it out loud
     setTimeout(() => {
-      setChatLog(prev => [...prev, { sender: 'ai', text: reply, time: timeNow }]);
+      setConversation(prev => [...prev, { sender: 'agent', text: reply }]);
       speakText(reply);
     }, 600);
   };
 
+  const handleToggleMic = () => {
+    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+      alert("La reconnaissance vocale directe n'est pas supportée sur ce navigateur. Utilisez le champ texte ci-dessous !");
+      return;
+    }
+
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const recognition = new SpeechRecognition();
+    recognition.lang = 'fr-FR';
+    recognition.interimResults = false;
+
+    if (!isListening) {
+      setIsListening(true);
+      recognition.start();
+
+      recognition.onresult = (event) => {
+        const text = event.results[0][0].transcript;
+        setTranscript(text);
+        setIsListening(false);
+        processUserSpeech(text);
+      };
+
+      recognition.onerror = () => {
+        setIsListening(false);
+      };
+
+      recognition.onend = () => {
+        setIsListening(false);
+      };
+    } else {
+      setIsListening(false);
+    }
+  };
+
+  const handleSendTextSubmit = (e) => {
+    e.preventDefault();
+    if (!inputMessage.trim()) return;
+    processUserSpeech(inputMessage);
+    setInputMessage('');
+  };
+
   return (
-    <div style={{ maxWidth: '800px', margin: '0 auto' }} className="animate-slide-up">
+    <div style={{ maxWidth: '750px', margin: '0 auto' }} className="animate-slide-up">
       
       <div className="card" style={{ padding: '2rem' }}>
         
@@ -120,134 +106,103 @@ export default function VoiceAssistantAgent({
             display: 'inline-flex',
             alignItems: 'center',
             gap: '0.5rem',
-            background: 'var(--primary-light)',
-            color: 'var(--primary)',
+            background: 'var(--accent-primary-light)',
+            color: 'var(--accent-primary)',
             padding: '0.4rem 1.1rem',
             borderRadius: '999px',
             fontSize: '0.9rem',
             fontWeight: 800,
             marginBottom: '0.65rem'
           }}>
-            <Sparkles size={18} /> Le Petit-Fils Numérique (IA Conversationnelle)
+            <Bot size={18} /> IA Conversationnelle "Le Petit-Fils Numérique"
           </div>
-          <h2 style={{ fontSize: '2.1rem', fontWeight: 800, fontFamily: 'var(--font-family-heading)', margin: 0 }}>
+          <h2 style={{ fontSize: '2rem', fontWeight: 800, fontFamily: 'var(--font-display)', margin: 0 }}>
             Assistant Vocal Bientraitant
           </h2>
-          <p style={{ color: 'var(--text-muted)', fontSize: '1.05rem', marginTop: '0.35rem', fontWeight: 500 }}>
-            Parlez naturellement à votre assistant : dites-lui si vous avez pris vos médicaments ou si vous ne vous sentez pas bien.
+          <p style={{ color: 'var(--system-text-secondary)', fontSize: '1.05rem', marginTop: '0.35rem', fontWeight: 500 }}>
+            Parlez naturellement ou tapez une phrase pour valider les cachets ou enregistrer un symptôme.
           </p>
         </div>
 
-        {/* AI Avatar & Voice Wave Form Visualizer */}
-        <div style={{
-          background: 'linear-gradient(135deg, #0284c7, #0369a1)',
-          color: 'white',
-          borderRadius: '24px',
-          padding: '2.5rem 1.5rem',
-          textAlign: 'center',
-          marginBottom: '2rem',
-          position: 'relative',
-          overflow: 'hidden'
-        }}>
-          
-          <div style={{
-            width: '90px',
-            height: '90px',
-            borderRadius: '50%',
-            background: '#ffffff',
-            color: 'var(--primary)',
-            display: 'inline-flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            boxShadow: '0 8px 25px rgba(0,0,0,0.2)',
-            marginBottom: '1rem',
-            transform: listening ? 'scale(1.1)' : 'scale(1)',
-            transition: 'all 0.3s ease'
-          }}>
-            <Mic size={44} color={listening ? '#16a34a' : 'var(--primary)'} />
-          </div>
-
-          <h3 style={{ fontSize: '1.5rem', fontWeight: 800, margin: '0 0 0.5rem 0' }}>
-            {listening ? "🎙️ L'assistant écoute Joseph..." : "Parlez à votre assistant médical"}
-          </h3>
-          <p style={{ opacity: 0.9, fontSize: '1rem', fontWeight: 500, maxWidth: '500px', margin: '0 auto 1.5rem auto' }}>
-            {listening ? "Exprimez-vous librement à voix haute." : "Appuyez sur le micro géant et dites : « J'ai pris mes cachets » ou « J'ai un peu mal à la tête »."}
-          </p>
-
+        {/* Big Mic Button Container */}
+        <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
           <button
-            onClick={startVoiceInput}
-            className="btn-giant"
+            onClick={handleToggleMic}
             style={{
-              background: listening ? '#16a34a' : '#ffffff',
-              color: listening ? 'white' : 'var(--text-main)',
-              fontSize: '1.3rem',
-              padding: '1.2rem 2.5rem',
-              border: '3px solid #ffffff'
+              width: '110px',
+              height: '110px',
+              borderRadius: '50%',
+              background: isListening ? 'var(--accent-danger)' : 'var(--accent-primary)',
+              color: '#ffffff',
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: isListening ? '0 0 35px rgba(255, 59, 48, 0.6)' : 'var(--shadow-lg)',
+              animation: isListening ? 'pulse-gentle 1s infinite' : 'none'
             }}
           >
-            <Mic size={28} /> {listening ? 'Écoute en cours... 🟢' : 'Appuyer pour Parler à l\'IA 🎤'}
+            {isListening ? <MicOff size={48} /> : <Mic size={48} />}
           </button>
-        </div>
-
-        {/* Quick Voice Prompts */}
-        <div style={{ marginBottom: '1.75rem' }}>
-          <span style={{ fontSize: '0.9rem', fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
-            Exemples de phrases rapides à tester :
-          </span>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.65rem', marginTop: '0.65rem' }}>
-            <button
-              onClick={() => handleUserSpeech("J'ai pris tous mes médicaments du matin !")}
-              style={{ padding: '0.65rem 1rem', borderRadius: '12px', background: 'var(--success-light)', color: 'var(--success)', fontWeight: 700, border: '1px solid var(--success)' }}
-            >
-              🟢 "J'ai pris tous mes médicaments du matin !"
-            </button>
-            <button
-              onClick={() => handleUserSpeech("J'ai un peu mal à la tête ce midi.")}
-              style={{ padding: '0.65rem 1rem', borderRadius: '12px', background: '#fef3c7', color: '#b45309', fontWeight: 700, border: '1px solid #f59e0b' }}
-            >
-              ⚠️ "J'ai un peu mal à la tête ce midi."
-            </button>
-            <button
-              onClick={() => handleUserSpeech("Quels sont mes comprimés pour ce soir ?")}
-              style={{ padding: '0.65rem 1rem', borderRadius: '12px', background: 'var(--primary-light)', color: 'var(--primary)', fontWeight: 700, border: '1px solid var(--primary)' }}
-            >
-              ❓ "Quels sont mes comprimés pour ce soir ?"
-            </button>
+          
+          <div style={{ marginTop: '0.85rem', fontWeight: 800, fontSize: '1.1rem', color: isListening ? 'var(--accent-danger)' : 'var(--system-text)' }}>
+            {isListening ? "🎙️ Écoute en cours... Parlez maintenant !" : "Appuyez sur le micro pour parler"}
           </div>
         </div>
 
-        {/* Dialogue Chat History */}
+        {/* Conversation Dialogue Bubble Stream */}
         <div style={{
-          background: 'var(--bg-main)',
-          border: '1.5px solid var(--border)',
-          borderRadius: '20px',
+          background: 'var(--system-bg)',
+          borderRadius: '24px',
           padding: '1.25rem',
-          maxHeight: '360px',
+          maxHeight: '320px',
           overflowY: 'auto',
           display: 'flex',
           flexDirection: 'column',
-          gap: '1rem'
+          gap: '0.85rem',
+          marginBottom: '1.25rem',
+          border: '1px solid var(--system-card-border)'
         }}>
-          {chatLog.map((msg, idx) => (
-            <div key={idx} style={{
-              alignSelf: msg.sender === 'user' ? 'flex-end' : 'flex-start',
-              maxWidth: '85%',
-              background: msg.sender === 'user' ? 'var(--primary)' : 'var(--card-bg)',
-              color: msg.sender === 'user' ? 'white' : 'var(--text-main)',
-              padding: '1rem 1.25rem',
-              borderRadius: msg.sender === 'user' ? '20px 20px 4px 20px' : '20px 20px 20px 4px',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
-              border: msg.sender === 'ai' ? '1px solid var(--border)' : 'none'
-            }}>
-              <div style={{ fontSize: '0.8rem', opacity: 0.8, fontWeight: 700, marginBottom: '0.25rem' }}>
-                {msg.sender === 'user' ? '👴 Papa Joseph' : '🤖 Assistant CarePill'} • {msg.time}
-              </div>
-              <div style={{ fontSize: '1.05rem', fontWeight: 600 }}>
-                {msg.text}
-              </div>
+          {conversation.map((msg, idx) => (
+            <div
+              key={idx}
+              style={{
+                alignSelf: msg.sender === 'user' ? 'flex-end' : 'flex-start',
+                maxWidth: '82%',
+                background: msg.sender === 'user' ? 'var(--accent-primary)' : 'var(--system-card-bg)',
+                color: msg.sender === 'user' ? '#ffffff' : 'var(--system-text)',
+                padding: '0.85rem 1.15rem',
+                borderRadius: msg.sender === 'user' ? '20px 20px 4px 20px' : '20px 20px 20px 4px',
+                boxShadow: 'var(--shadow-sm)',
+                fontWeight: 600,
+                fontSize: '0.98rem'
+              }}
+            >
+              {msg.text}
             </div>
           ))}
         </div>
+
+        {/* Text Input Fallback */}
+        <form onSubmit={handleSendTextSubmit} style={{ display: 'flex', gap: '0.65rem' }}>
+          <input
+            type="text"
+            placeholder="Exemple: J'ai pris mes cachets du matin..."
+            value={inputMessage}
+            onChange={(e) => setInputMessage(e.target.value)}
+            style={{
+              flex: 1,
+              padding: '0.85rem 1.1rem',
+              borderRadius: '16px',
+              border: '1px solid var(--system-card-border)',
+              fontSize: '0.95rem',
+              outline: 'none',
+              background: 'var(--system-bg)'
+            }}
+          />
+          <button type="submit" className="btn-primary" style={{ padding: '0.85rem 1.35rem', borderRadius: '16px', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+            <Send size={18} /> Envoyer
+          </button>
+        </form>
 
       </div>
 

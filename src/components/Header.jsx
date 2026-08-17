@@ -1,5 +1,5 @@
 import React from 'react';
-import { Pill, Heart, Camera, FileText, Volume2, VolumeX, Eye, ZoomIn, ZoomOut, UserCheck, Hand, Sparkles, MessageSquare } from 'lucide-react';
+import { Pill, Heart, Camera, FileText, Volume2, VolumeX, Eye, ZoomIn, ZoomOut, UserCheck, HelpCircle } from 'lucide-react';
 
 export default function Header({ 
   activeTab, 
@@ -10,7 +10,8 @@ export default function Header({
   setHighContrast,
   textSize,
   setTextSize,
-  patientName
+  patientName,
+  onOpenOnboarding
 }) {
 
   return (
@@ -75,7 +76,7 @@ export default function Header({
           </div>
         </div>
 
-        {/* Primary Desktop Navigation (Segmented Control Structure) */}
+        {/* Primary Desktop Navigation */}
         <nav style={{ display: 'none' }} className="desktop-segmented">
           <style>{`
             @media (min-width: 768px) {
@@ -108,6 +109,25 @@ export default function Header({
 
         {/* Minimal Accessibility Controls */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+          <button
+            onClick={onOpenOnboarding}
+            title="Guide & Tutoriel"
+            style={{
+              padding: '0.45rem 0.65rem',
+              borderRadius: '11px',
+              border: '1px solid var(--system-card-border)',
+              background: 'var(--system-card-bg)',
+              color: 'var(--accent-primary)',
+              fontSize: '0.8rem',
+              fontWeight: 800,
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.3rem'
+            }}
+          >
+            <HelpCircle size={16} /> Guide
+          </button>
+
           <button
             onClick={() => setSpeechEnabled(!speechEnabled)}
             title="Lecture Vocale"

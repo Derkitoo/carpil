@@ -33,7 +33,7 @@ export default function SeniorPapaView({
       origin: { y: 0.6 }
     });
 
-    speakText(`Bravo Joseph ! Votre traitement du ${currentSlotKey} est validé avec succès. Passez une excellente journée.`);
+    speakText(`Bravo ${patientName} ! Votre traitement du ${currentSlotKey} est validé avec succès. Passez une excellente journée.`);
   };
 
   const handleSpeakInstructions = () => {
@@ -77,9 +77,10 @@ export default function SeniorPapaView({
       {/* 1-TAP HOME SCREEN WIDGET SIMULATOR BANNER */}
       <HomeWidgetSimulator
         takenSlots={takenSlots}
-        onValidateSlot={onValidateSlot}
+        onValidateSlot={handleValidateSlot}
         speakText={speakText}
         timeSlots={timeSlots}
+        patientName={patientName}
       />
 
       {/* THE ONE SINGLE HERO CARD FOR PAPA */}
@@ -127,7 +128,7 @@ export default function SeniorPapaView({
 
             <p style={{ fontSize: '1.1rem', opacity: 0.95, fontWeight: 500, margin: 0 }}>
               {isTaken 
-                ? "Vous avez pris tous vos comprimés. Thomas a bien reçu la confirmation !"
+                ? "Vous avez pris tous vos comprimés. La confirmation a bien été envoyée !"
                 : `Vous avez ${currentMeds.length} comprimé(s) à prendre actuellement.`
               }
             </p>
@@ -202,7 +203,7 @@ export default function SeniorPapaView({
               fontSize: '1.15rem',
               fontWeight: 800
             }}>
-              ✨ Passez une très belle journée Joseph ! ❤️
+              ✨ Passez une très belle journée {patientName} ! ❤️
             </div>
           )}
 
