@@ -4,12 +4,12 @@ import confetti from 'canvas-confetti';
 import HomeWidgetSimulator from './HomeWidgetSimulator';
 
 export default function SeniorPapaView({ 
-  medications, 
-  takenSlots, 
+  medications = [], 
+  takenSlots = {}, 
   onValidateSlot, 
   speakText, 
-  timeSlots,
-  patientName,
+  timeSlots = [],
+  patientName = 'Papa',
   onSwitchToCaregiver
 }) {
   const currentHour = new Date().getHours();
@@ -20,23 +20,34 @@ export default function SeniorPapaView({
 
   const currentDayKey = 'mar'; // Mardi
   const currentDayLabel = 'Mardi 17 Août';
-  const isTaken = takenSlots[`${currentDayKey}-${currentSlotKey}`];
+  const safeTakenSlots = takenSlots || {};
+  const isTaken = Boolean(safeTakenSlots[`${currentDayKey}-${currentSlotKey}`]);
 
-  const currentMeds = medications.filter(med => med.timeSlots.includes(currentSlotKey));
+  const safeMedications = medications || [];
+  const currentMeds = safeMedications.filter(med => med && med.timeSlots && med.timeSlots.includes(currentSlotKey));
 
   const handleValidateCurrent = () => {
-    onValidateSlot(currentDayKey, currentSlotKey);
+    if (onValidateSlot) {
+      onValidateSlot(currentDayKey, currentSlotKey);
+    }
     
-    confetti({
-      particleCount: 100,
-      spread: 80,
-      origin: { y: 0.6 }
-    });
+    try {
+      confetti({
+        particleCount: 100,
+        spread: 80,
+        origin: { y: 0.6 }
+      });
+    } catch (e) {
+      console.warn(e);
+    }
 
-    speakText(`Bravo ${patientName} ! Votre traitement du ${currentSlotKey} est validé avec succès. Passez une excellente journée.`);
+    if (speakText) {
+      speakText(`Bravo ${patientName} ! Votre traitement du ${currentSlotKey} est validé avec succès. Passez une excellente journée.`);
+    }
   };
 
   const handleSpeakInstructions = () => {
+    if (!speakText) return;
     let text = `Pour votre prise du ${currentSlotKey}, vous avez ${currentMeds.length} médicaments : `;
     currentMeds.forEach((m, idx) => {
       text += `${idx + 1}. ${m.name} ${m.dosage}. ${m.instructions}. `;
@@ -76,8 +87,8 @@ export default function SeniorPapaView({
 
       {/* 1-TAP HOME SCREEN WIDGET SIMULATOR BANNER */}
       <HomeWidgetSimulator
-        takenSlots={takenSlots}
-        onValidateSlot={handleValidateSlot}
+        takenSlots={safeTakenSlots}
+        onValidateSlot={onValidateSlot}
         speakText={speakText}
         timeSlots={timeSlots}
         patientName={patientName}
