@@ -25,7 +25,7 @@ export default function App() {
   const [appMode, setAppMode] = useState('papa');
   const [caregiverTab, setCaregiverTab] = useState('dashboard');
 
-  // Defensive State Initializers with Try/Catch Safety
+  // Defensive State Initializers
   const [speechEnabled, setSpeechEnabled] = useState(() => {
     try {
       return localStorage.getItem('carepill_speech') !== 'false';
@@ -76,7 +76,6 @@ export default function App() {
   const [activeModalData, setActiveModalData] = useState(null);
   const [toastMessage, setToastMessage] = useState(null);
 
-  // Onboarding Modal state
   const [showOnboarding, setShowOnboarding] = useState(() => {
     try {
       return localStorage.getItem('carepill_onboarding_done') !== 'true';
@@ -85,6 +84,44 @@ export default function App() {
     }
   });
 
+  // FUNCTIONS DEFINED AT TOP (PREVENTS ReferenceError BEFORE INITIALIZATION)
+  function showToast(msg) {
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(null), 4500);
+  }
+
+  function speakText(text) {
+    if (!speechEnabled || typeof window === 'undefined' || !('speechSynthesis' in window)) return;
+    try {
+      window.speechSynthesis.cancel();
+
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = 'fr-FR';
+      utterance.rate = 0.92;
+
+      const voices = window.speechSynthesis.getVoices();
+      const frVoice = voices.find(v => v.lang && (v.lang.includes('fr') || v.lang.includes('FR')));
+      if (frVoice) {
+        utterance.voice = frVoice;
+      }
+
+      window.speechSynthesis.speak(utterance);
+    } catch (e) {
+      console.warn("Speech synthesis error:", e);
+    }
+  }
+
+  function handleValidateSlot(dayKey, slotKey) {
+    const key = `${dayKey}-${slotKey}`;
+    setTakenSlots(prev => {
+      const updated = { ...prev, [key]: true };
+      CloudSyncService.saveTakenSlots(updated);
+      return updated;
+    });
+
+    showToast(`✅ Case ${slotKey} certifiée et enregistrée !`);
+  }
+
   const handleCloseOnboarding = () => {
     setShowOnboarding(false);
     try {
@@ -92,6 +129,27 @@ export default function App() {
     } catch (e) {
       console.warn(e);
     }
+  };
+
+  const handleUpdatePatientProfile = (newProfile) => {
+    setPatientProfile(newProfile);
+    try {
+      localStorage.setItem('carepill_profile', JSON.stringify(newProfile));
+    } catch (e) {
+      console.warn(e);
+    }
+    showToast(`Fiche de ${newProfile.name} mise à jour avec succès !`);
+  };
+
+  const handleAddSymptom = (newSymptom) => {
+    setSymptomsLog(prev => [newSymptom, ...prev]);
+    showToast("Symptôme enregistré dans le journal de santé !");
+  };
+
+  const handleSendNotification = (textMsg) => {
+    CloudSyncService.sendNotice(textMsg);
+    showToast(`Message transmis à ${patientProfile.name} : "${textMsg}"`);
+    speakText(`Message de votre enfant : ${textMsg}`);
   };
 
   // Check URL parameters for PWA Manifest Quick-Action Shortcut triggers
@@ -154,63 +212,6 @@ export default function App() {
       console.warn(e);
     }
   }, [textSize, highContrast, speechEnabled]);
-
-  const handleUpdatePatientProfile = (newProfile) => {
-    setPatientProfile(newProfile);
-    try {
-      localStorage.setItem('carepill_profile', JSON.stringify(newProfile));
-    } catch (e) {
-      console.warn(e);
-    }
-    showToast(`Fiche de ${newProfile.name} mise à jour avec succès !`);
-  };
-
-  const speakText = (text) => {
-    if (!speechEnabled || typeof window === 'undefined' || !('speechSynthesis' in window)) return;
-    try {
-      window.speechSynthesis.cancel();
-
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = 'fr-FR';
-      utterance.rate = 0.92;
-
-      const voices = window.speechSynthesis.getVoices();
-      const frVoice = voices.find(v => v.lang && (v.lang.includes('fr') || v.lang.includes('FR')));
-      if (frVoice) {
-        utterance.voice = frVoice;
-      }
-
-      window.speechSynthesis.speak(utterance);
-    } catch (e) {
-      console.warn("Speech synthesis error:", e);
-    }
-  };
-
-  const handleValidateSlot = (dayKey, slotKey) => {
-    const key = `${dayKey}-${slotKey}`;
-    const newSlots = { ...takenSlots, [key]: true };
-    
-    setTakenSlots(newSlots);
-    CloudSyncService.saveTakenSlots(newSlots);
-
-    showToast(`✅ Case ${slotKey} certifiée et enregistrée !`);
-  };
-
-  const showToast = (msg) => {
-    setToastMessage(msg);
-    setTimeout(() => setToastMessage(null), 4500);
-  };
-
-  const handleAddSymptom = (newSymptom) => {
-    setSymptomsLog(prev => [newSymptom, ...prev]);
-    showToast("Symptôme enregistré dans le journal de santé !");
-  };
-
-  const handleSendNotification = (textMsg) => {
-    CloudSyncService.sendNotice(textMsg);
-    showToast(`Message transmis à ${patientProfile.name} : "${textMsg}"`);
-    speakText(`Message de votre enfant : ${textMsg}`);
-  };
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--system-bg)' }}>
