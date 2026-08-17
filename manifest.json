@@ -3,20 +3,45 @@
   "name": "CarePill AI — Suivi Médical Papa",
   "icons": [
     {
-      "src": "/icon-192.png",
-      "type": "image/png",
+      "src": "pwa-192x192.svg",
+      "type": "image/svg+xml",
       "sizes": "192x192"
     },
     {
-      "src": "/icon-512.png",
-      "type": "image/png",
-      "sizes": "512x512"
+      "src": "pwa-512x512.svg",
+      "type": "image/svg+xml",
+      "sizes": "512x512",
+      "purpose": "any maskable"
     }
   ],
-  "start_url": "/",
+  "start_url": "./",
+  "scope": "./",
   "background_color": "#f8fafc",
   "theme_color": "#0284c7",
   "display": "standalone",
   "orientation": "portrait",
-  "description": "Application révolutionnaire de suivi de traitement médical pour polymédication senior et supervision familiale."
+  "description": "Application révolutionnaire de suivi de traitement médical pour polymédication senior et supervision familiale.",
+  "shortcuts": [
+    {
+      "name": "Valider Matin 🟢",
+      "short_name": "Matin 🟢",
+      "description": "Valider instantanément les médicaments du matin",
+      "url": "./?action=validate_Matin",
+      "icons": [{ "src": "pwa-192x192.svg", "sizes": "192x192", "type": "image/svg+xml" }]
+    },
+    {
+      "name": "Valider Midi ☀️",
+      "short_name": "Midi ☀️",
+      "description": "Valider instantanément les médicaments du midi",
+      "url": "./?action=validate_Midi",
+      "icons": [{ "src": "pwa-192x192.svg", "sizes": "192x192", "type": "image/svg+xml" }]
+    },
+    {
+      "name": "Valider Soir 🌅",
+      "short_name": "Soir 🌅",
+      "description": "Valider instantanément les médicaments du soir",
+      "url": "./?action=validate_Soir",
+      "icons": [{ "src": "pwa-192x192.svg", "sizes": "192x192", "type": "image/svg+xml" }]
+    }
+  ]
 }
