@@ -8,7 +8,7 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.svg', 'pwa-192x192.svg', 'pwa-512x512.svg'],
+      includeAssets: ['favicon.svg', 'pwa-192x192.svg', 'pwa-512x512.svg', 'shortcut-matin.svg', 'shortcut-midi.svg', 'shortcut-soir.svg'],
       manifest: {
         name: 'CarePill AI — Suivi Médical Papa',
         short_name: 'CarePill',
@@ -38,21 +38,21 @@ export default defineConfig({
             short_name: 'Matin 🟢',
             description: 'Valider instantanément les médicaments du matin',
             url: './?action=validate_Matin',
-            icons: [{ src: 'pwa-192x192.svg', sizes: '192x192', type: 'image/svg+xml' }]
+            icons: [{ src: 'shortcut-matin.svg', sizes: '192x192', type: 'image/svg+xml' }]
           },
           {
             name: 'Valider Midi ☀️',
             short_name: 'Midi ☀️',
             description: 'Valider instantanément les médicaments du midi',
             url: './?action=validate_Midi',
-            icons: [{ src: 'pwa-192x192.svg', sizes: '192x192', type: 'image/svg+xml' }]
+            icons: [{ src: 'shortcut-midi.svg', sizes: '192x192', type: 'image/svg+xml' }]
           },
           {
             name: 'Valider Soir 🌅',
             short_name: 'Soir 🌅',
             description: 'Valider instantanément les médicaments du soir',
             url: './?action=validate_Soir',
-            icons: [{ src: 'pwa-192x192.svg', sizes: '192x192', type: 'image/svg+xml' }]
+            icons: [{ src: 'shortcut-soir.svg', sizes: '192x192', type: 'image/svg+xml' }]
           }
         ]
       },
