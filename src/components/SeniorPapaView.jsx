@@ -156,15 +156,15 @@ export default function SeniorPapaView({
 
         </div>
 
-        {/* Time slot selector pills */}
+        {/* Time slot selector buttons (Grid layout - NO scrollbar!) */}
         <div style={{
           marginTop: '1.25rem',
           paddingTop: '1rem',
           borderTop: '1px solid rgba(255,255,255,0.2)',
-          display: 'flex',
-          gap: '0.5rem',
-          overflowX: 'auto',
-          paddingBottom: '0.2rem'
+          display: 'grid',
+          gridTemplateColumns: 'repeat(4, 1fr)',
+          gap: '0.4rem',
+          width: '100%'
         }}>
           {timeSlots.map((slot) => {
             const isSlotTaken = takenSlots[`${currentDayKey}-${slot.key}`];
@@ -175,21 +175,23 @@ export default function SeniorPapaView({
                 key={slot.key}
                 onClick={() => setSelectedSlot(slot.key)}
                 style={{
-                  padding: '0.6rem 0.95rem',
+                  padding: '0.6rem 0.2rem',
                   borderRadius: '12px',
-                  background: isSelected ? '#ffffff' : 'rgba(255, 255, 255, 0.15)',
+                  background: isSelected ? '#ffffff' : 'rgba(255, 255, 255, 0.2)',
                   color: isSelected ? 'var(--text-main)' : 'white',
                   fontWeight: 800,
-                  fontSize: '0.95rem',
+                  fontSize: '0.9rem',
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '0.35rem',
-                  flexShrink: 0
+                  justifyContent: 'center',
+                  gap: '0.25rem',
+                  width: '100%',
+                  textAlign: 'center'
                 }}
               >
                 <span>{slot.key === 'Matin' ? '☀️' : slot.key === 'Midi' ? '🌤️' : slot.key === 'Soir' ? '🌅' : '🌙'}</span>
                 <span>{slot.key}</span>
-                {isSlotTaken && <span style={{ color: '#16a34a' }}>✓</span>}
+                {isSlotTaken && <span style={{ color: '#16a34a', fontWeight: 900 }}>✓</span>}
               </button>
             );
           })}
@@ -274,27 +276,28 @@ export default function SeniorPapaView({
       </div>
 
 
-      {/* 3. PHYSICAL PILLBOX MIRROR (RESPONSIVE: MOBILE DAY CARDS / DESKTOP TABLE) */}
+      {/* 3. PHYSICAL PILLBOX MIRROR */}
       <div className="card">
         
-        <div style={{ marginBottom: '1.25rem' }}>
+        <div style={{ marginBottom: '1.1rem' }}>
           <h3 style={{ fontSize: '1.35rem', fontWeight: 800, fontFamily: 'var(--font-family-heading)', margin: 0 }}>
             📅 Pilulier Physique Semainier
           </h3>
           <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', fontWeight: 500, margin: '0.2rem 0 0 0' }}>
-            Reproduction visuelle des 7 jours de la semaine.
+            Sélectionnez un jour de la semaine pour consulter ses 4 casiers.
           </p>
         </div>
 
-        {/* Mobile Day Selector Tabs (< 768px) */}
+        {/* Days Grid (7 columns - NO scrollbar!) */}
         <div style={{
-          display: 'flex',
-          gap: '0.35rem',
-          overflowX: 'auto',
-          paddingBottom: '0.85rem',
+          display: 'grid',
+          gridTemplateColumns: 'repeat(7, 1fr)',
+          gap: '0.3rem',
+          width: '100%',
           marginBottom: '1rem',
+          paddingBottom: '0.75rem',
           borderBottom: '1px solid var(--border)'
-        }} className="mobile-day-tabs">
+        }}>
           {daysOfWeek.map((day) => {
             const isSelectedDay = selectedDayKey === day.key;
             const isToday = day.key === currentDayKey;
@@ -303,26 +306,26 @@ export default function SeniorPapaView({
                 key={day.key}
                 onClick={() => setSelectedDayKey(day.key)}
                 style={{
-                  padding: '0.55rem 0.85rem',
+                  padding: '0.5rem 0.15rem',
                   borderRadius: '12px',
                   background: isSelectedDay ? 'var(--primary)' : isToday ? 'var(--primary-light)' : 'var(--bg-main)',
                   color: isSelectedDay ? 'white' : isToday ? 'var(--primary)' : 'var(--text-main)',
                   fontWeight: 800,
-                  fontSize: '0.9rem',
+                  fontSize: '0.88rem',
                   border: isSelectedDay ? 'none' : '1px solid var(--border)',
-                  flexShrink: 0,
-                  textAlign: 'center'
+                  textAlign: 'center',
+                  width: '100%'
                 }}
               >
                 <div>{day.short}</div>
-                {isToday && <div style={{ fontSize: '0.65rem' }}>Auj.</div>}
+                {isToday && <div style={{ fontSize: '0.62rem', lineHeight: 1, marginTop: '0.15rem' }}>Auj.</div>}
               </button>
             );
           })}
         </div>
 
-        {/* Mobile Day Slots Cards (< 768px) */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '0.75rem' }} className="mobile-day-cards">
+        {/* 4 Time Slot Compartment Cards for Selected Day */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '0.75rem' }}>
           {timeSlots.map((slot) => {
             const dayObj = daysOfWeek.find(d => d.key === selectedDayKey) || daysOfWeek[0];
             const slotKey = `${selectedDayKey}-${slot.key}`;
@@ -334,7 +337,7 @@ export default function SeniorPapaView({
                 key={slot.key}
                 onClick={() => onOpenCompartment(dayObj.label, slot.key, slotMeds, slotTaken)}
                 style={{
-                  padding: '0.85rem',
+                  padding: '0.85rem 0.5rem',
                   borderRadius: '16px',
                   background: slotTaken ? 'var(--success-light)' : 'var(--bg-main)',
                   border: slotTaken ? '2px solid var(--success)' : '1.5px solid var(--border)',
@@ -342,12 +345,12 @@ export default function SeniorPapaView({
                   textAlign: 'center'
                 }}
               >
-                <div style={{ fontWeight: 800, fontSize: '0.95rem', marginBottom: '0.35rem' }}>
+                <div style={{ fontWeight: 800, fontSize: '0.92rem', marginBottom: '0.35rem' }}>
                   {slot.key === 'Matin' ? '☀️' : slot.key === 'Midi' ? '🌤️' : slot.key === 'Soir' ? '🌅' : '🌙'} {slot.key}
                 </div>
 
                 {slotTaken ? (
-                  <span style={{ fontSize: '0.82rem', color: 'var(--success)', fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.2rem' }}>
+                  <span style={{ fontSize: '0.8rem', color: 'var(--success)', fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.2rem' }}>
                     <CheckCircle2 size={16} /> Validé
                   </span>
                 ) : (

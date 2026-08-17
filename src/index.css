@@ -46,6 +46,15 @@ body.high-contrast {
   padding: 0;
 }
 
+/* Hide ugly horizontal scrollbars on tab bars */
+div, nav, section, ul {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+div::-webkit-scrollbar, nav::-webkit-scrollbar, section::-webkit-scrollbar, ul::-webkit-scrollbar {
+  display: none;
+}
+
 html {
   font-size: calc(16px * var(--senior-scale));
   -webkit-text-size-adjust: 100%;
