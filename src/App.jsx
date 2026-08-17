@@ -25,22 +25,48 @@ export default function App() {
   const [appMode, setAppMode] = useState('papa');
   const [caregiverTab, setCaregiverTab] = useState('dashboard');
 
+  // Defensive State Initializers with Try/Catch Safety
   const [speechEnabled, setSpeechEnabled] = useState(() => {
-    return localStorage.getItem('carepill_speech') !== 'false';
+    try {
+      return localStorage.getItem('carepill_speech') !== 'false';
+    } catch {
+      return true;
+    }
   });
+
   const [highContrast, setHighContrast] = useState(() => {
-    return localStorage.getItem('carepill_contrast') === 'true';
+    try {
+      return localStorage.getItem('carepill_contrast') === 'true';
+    } catch {
+      return false;
+    }
   });
+
   const [textSize, setTextSize] = useState(() => {
-    return parseFloat(localStorage.getItem('carepill_textsize')) || 1;
+    try {
+      const val = parseFloat(localStorage.getItem('carepill_textsize'));
+      return (!isNaN(val) && val > 0) ? val : 1;
+    } catch {
+      return 1;
+    }
   });
 
   const [medications, setMedications] = useState(INITIAL_MEDICATIONS);
   const [symptomsLog, setSymptomsLog] = useState(INITIAL_SYMPTOMS_LOG);
 
   const [patientProfile, setPatientProfile] = useState(() => {
-    const saved = localStorage.getItem('carepill_profile');
-    return saved ? JSON.parse(saved) : PATIENT_PROFILE;
+    try {
+      const saved = localStorage.getItem('carepill_profile');
+      if (saved && saved !== 'undefined' && saved !== 'null') {
+        const parsed = JSON.parse(saved);
+        if (parsed && typeof parsed === 'object' && parsed.name) {
+          return parsed;
+        }
+      }
+    } catch (err) {
+      console.warn("Using default patient profile due to storage error:", err);
+    }
+    return PATIENT_PROFILE;
   });
 
   const [takenSlots, setTakenSlots] = useState(() => 
@@ -52,35 +78,47 @@ export default function App() {
 
   // Onboarding Modal state
   const [showOnboarding, setShowOnboarding] = useState(() => {
-    return localStorage.getItem('carepill_onboarding_done') !== 'true';
+    try {
+      return localStorage.getItem('carepill_onboarding_done') !== 'true';
+    } catch {
+      return false;
+    }
   });
 
   const handleCloseOnboarding = () => {
     setShowOnboarding(false);
-    localStorage.setItem('carepill_onboarding_done', 'true');
+    try {
+      localStorage.setItem('carepill_onboarding_done', 'true');
+    } catch (e) {
+      console.warn(e);
+    }
   };
 
   // Check URL parameters for PWA Manifest Quick-Action Shortcut triggers
   useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const action = urlParams.get('action');
+    try {
+      const urlParams = new URLSearchParams(window.location.search);
+      const action = urlParams.get('action');
 
-    if (action && action.startsWith('validate_')) {
-      const slotToValidate = action.replace('validate_', '');
-      const dayKey = 'mar';
+      if (action && action.startsWith('validate_')) {
+        const slotToValidate = action.replace('validate_', '');
+        const dayKey = 'mar';
 
-      handleValidateSlot(dayKey, slotToValidate);
-      
-      confetti({
-        particleCount: 120,
-        spread: 80,
-        origin: { y: 0.5 }
-      });
+        handleValidateSlot(dayKey, slotToValidate);
+        
+        confetti({
+          particleCount: 120,
+          spread: 80,
+          origin: { y: 0.5 }
+        });
 
-      speakText(`Raccourci exécuté : Traitement du ${slotToValidate} validé instantanément pour ${patientProfile.name} !`);
-      showToast(`🟢 Traitement du ${slotToValidate} validé avec succès pour ${patientProfile.name} !`);
+        speakText(`Raccourci exécuté : Traitement du ${slotToValidate} validé instantanément pour ${patientProfile.name} !`);
+        showToast(`🟢 Traitement du ${slotToValidate} validé avec succès pour ${patientProfile.name} !`);
 
-      window.history.replaceState({}, document.title, window.location.pathname);
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+    } catch (err) {
+      console.warn("Shortcut action handling error:", err);
     }
   }, [patientProfile.name]);
 
@@ -99,41 +137,53 @@ export default function App() {
   }, [patientProfile.name]);
 
   useEffect(() => {
-    document.documentElement.style.setProperty('--senior-scale', textSize);
-    localStorage.setItem('carepill_textsize', textSize.toString());
+    try {
+      document.documentElement.style.setProperty('--senior-scale', textSize);
+      localStorage.setItem('carepill_textsize', textSize.toString());
 
-    if (highContrast) {
-      document.body.classList.add('high-contrast');
-      localStorage.setItem('carepill_contrast', 'true');
-    } else {
-      document.body.classList.remove('high-contrast');
-      localStorage.setItem('carepill_contrast', 'false');
+      if (highContrast) {
+        document.body.classList.add('high-contrast');
+        localStorage.setItem('carepill_contrast', 'true');
+      } else {
+        document.body.classList.remove('high-contrast');
+        localStorage.setItem('carepill_contrast', 'false');
+      }
+
+      localStorage.setItem('carepill_speech', speechEnabled.toString());
+    } catch (e) {
+      console.warn(e);
     }
-
-    localStorage.setItem('carepill_speech', speechEnabled.toString());
   }, [textSize, highContrast, speechEnabled]);
 
   const handleUpdatePatientProfile = (newProfile) => {
     setPatientProfile(newProfile);
-    localStorage.setItem('carepill_profile', JSON.stringify(newProfile));
+    try {
+      localStorage.setItem('carepill_profile', JSON.stringify(newProfile));
+    } catch (e) {
+      console.warn(e);
+    }
     showToast(`Fiche de ${newProfile.name} mise à jour avec succès !`);
   };
 
   const speakText = (text) => {
-    if (!speechEnabled || !('speechSynthesis' in window)) return;
-    window.speechSynthesis.cancel();
+    if (!speechEnabled || typeof window === 'undefined' || !('speechSynthesis' in window)) return;
+    try {
+      window.speechSynthesis.cancel();
 
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = 'fr-FR';
-    utterance.rate = 0.92;
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = 'fr-FR';
+      utterance.rate = 0.92;
 
-    const voices = window.speechSynthesis.getVoices();
-    const frVoice = voices.find(v => v.lang.includes('fr') || v.lang.includes('FR'));
-    if (frVoice) {
-      utterance.voice = frVoice;
+      const voices = window.speechSynthesis.getVoices();
+      const frVoice = voices.find(v => v.lang && (v.lang.includes('fr') || v.lang.includes('FR')));
+      if (frVoice) {
+        utterance.voice = frVoice;
+      }
+
+      window.speechSynthesis.speak(utterance);
+    } catch (e) {
+      console.warn("Speech synthesis error:", e);
     }
-
-    window.speechSynthesis.speak(utterance);
   };
 
   const handleValidateSlot = (dayKey, slotKey) => {
