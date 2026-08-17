@@ -17,12 +17,11 @@ import {
   INITIAL_SYMPTOMS_LOG 
 } from './data/initialData';
 
-import { Hand, MessageSquare, Camera, Heart, FileText } from 'lucide-react';
+import { Heart, Hand, MessageSquare, Camera, FileText, ArrowLeft } from 'lucide-react';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState('pillbox'); // 'pillbox' | 'assistants' | 'caregiver'
-  const [assistantSubTab, setAssistantSubTab] = useState('handScanner'); // 'handScanner' | 'voiceAgent' | 'scanner'
-  const [caregiverSubTab, setCaregiverSubTab] = useState('dashboard'); // 'dashboard' | 'report'
+  const [appMode, setAppMode] = useState('papa'); // 'papa' (Dad's 1-Card view) | 'caregiver' (Child/Admin hub)
+  const [caregiverTab, setCaregiverTab] = useState('dashboard'); // 'dashboard' | 'handScanner' | 'voiceAgent' | 'scanner' | 'report'
 
   const [speechEnabled, setSpeechEnabled] = useState(true);
   const [highContrast, setHighContrast] = useState(false);
@@ -100,24 +99,11 @@ export default function App() {
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--system-bg)' }}>
       
-      {/* Header Bar */}
-      <Header
-        activeTab={activeTab}
-        setActiveTab={setActiveTab}
-        speechEnabled={speechEnabled}
-        setSpeechEnabled={setSpeechEnabled}
-        highContrast={highContrast}
-        setHighContrast={setHighContrast}
-        textSize={textSize}
-        setTextSize={setTextSize}
-        patientName={patientProfile.name}
-      />
-
       {/* Toast Notification Bar */}
       {toastMessage && (
         <div style={{
           position: 'fixed',
-          bottom: '88px',
+          bottom: '24px',
           right: '20px',
           zIndex: 120,
           background: 'var(--system-text)',
@@ -136,103 +122,88 @@ export default function App() {
         </div>
       )}
 
-      {/* Main Container */}
-      <main style={{ flex: 1, maxWidth: '1060px', width: '100%', margin: '0 auto', padding: '1.5rem 1rem' }}>
-        
-        {/* TAB 1: PILULIER PAPA */}
-        {activeTab === 'pillbox' && (
+      {/* MODE 1: DAD'S ZERO-FRICTION 1-CARD VIEW */}
+      {appMode === 'papa' ? (
+        <main style={{ flex: 1, padding: '1.5rem 1rem', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
           <SeniorPapaView
             medications={medications}
             takenSlots={takenSlots}
             onValidateSlot={handleValidateSlot}
-            onOpenCompartment={(dayLabel, slotKey, meds, isTaken) => {
-              setActiveModalData({ dayLabel, slotKey, meds, isTaken });
-            }}
             speakText={speakText}
             timeSlots={TIME_SLOTS}
-            daysOfWeek={DAYS_OF_WEEK}
+            patientName={patientProfile.name}
+            onSwitchToCaregiver={() => setAppMode('caregiver')}
           />
-        )}
+        </main>
+      ) : (
+        /* MODE 2: CAREGIVER / ADMIN FULL HUB */
+        <>
+          {/* Header Bar for Caregiver Hub */}
+          <Header
+            activeTab={caregiverTab}
+            setActiveTab={setCaregiverTab}
+            speechEnabled={speechEnabled}
+            setSpeechEnabled={setSpeechEnabled}
+            highContrast={highContrast}
+            setHighContrast={setHighContrast}
+            textSize={textSize}
+            setTextSize={setTextSize}
+            patientName={patientProfile.name}
+          />
 
-        {/* TAB 2: ASSISTANTS IA HUB */}
-        {activeTab === 'assistants' && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }} className="animate-slide-up">
+          <main style={{ flex: 1, maxWidth: '1060px', width: '100%', margin: '0 auto', padding: '1.5rem 1rem' }}>
             
-            {/* Apple Segmented Control for Assistants */}
-            <div className="segmented-control" style={{ maxWidth: '600px', margin: '0 auto 0.5rem auto', width: '100%' }}>
+            {/* Back to Dad's Screen Button */}
+            <div style={{ marginBottom: '1.25rem' }}>
               <button
-                onClick={() => setAssistantSubTab('handScanner')}
-                className={`segmented-option ${assistantSubTab === 'handScanner' ? 'active' : ''}`}
+                onClick={() => setAppMode('papa')}
+                style={{
+                  padding: '0.6rem 1.1rem',
+                  borderRadius: '14px',
+                  background: 'var(--system-card-bg)',
+                  border: '1px solid var(--system-card-border)',
+                  color: 'var(--accent-primary)',
+                  fontSize: '0.9rem',
+                  fontWeight: 800,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  boxShadow: 'var(--shadow-sm)'
+                }}
+              >
+                <ArrowLeft size={18} /> Revenir à l'écran de Papa 👴
+              </button>
+            </div>
+
+            {/* Segmented control for Caregiver sub-features */}
+            <div className="segmented-control" style={{ maxWidth: '640px', margin: '0 auto 1.5rem auto', width: '100%' }}>
+              <button
+                onClick={() => setCaregiverTab('dashboard')}
+                className={`segmented-option ${caregiverTab === 'dashboard' ? 'active' : ''}`}
+              >
+                👥 Dashboard Proche
+              </button>
+              <button
+                onClick={() => setCaregiverTab('handScanner')}
+                className={`segmented-option ${caregiverTab === 'handScanner' ? 'active' : ''}`}
               >
                 🖐️ Scan Main
               </button>
               <button
-                onClick={() => setAssistantSubTab('voiceAgent')}
-                className={`segmented-option ${assistantSubTab === 'voiceAgent' ? 'active' : ''}`}
+                onClick={() => setCaregiverTab('voiceAgent')}
+                className={`segmented-option ${caregiverTab === 'voiceAgent' ? 'active' : ''}`}
               >
-                🗣️ Assistant Vocal
+                🗣️ Voice AI
               </button>
               <button
-                onClick={() => setAssistantSubTab('scanner')}
-                className={`segmented-option ${assistantSubTab === 'scanner' ? 'active' : ''}`}
+                onClick={() => setCaregiverTab('report')}
+                className={`segmented-option ${caregiverTab === 'report' ? 'active' : ''}`}
               >
-                📷 Scan Ordonnance
+                📄 Bilan PDF
               </button>
             </div>
 
-            {assistantSubTab === 'handScanner' && (
-              <HandPillScanner
-                medications={medications}
-                onValidateSlot={handleValidateSlot}
-                speakText={speakText}
-                timeSlots={TIME_SLOTS}
-              />
-            )}
-
-            {assistantSubTab === 'voiceAgent' && (
-              <VoiceAssistantAgent
-                medications={medications}
-                onValidateSlot={handleValidateSlot}
-                onAddSymptom={handleAddSymptom}
-                speakText={speakText}
-                timeSlots={TIME_SLOTS}
-              />
-            )}
-
-            {assistantSubTab === 'scanner' && (
-              <IAScanner
-                onImportMedications={(newMeds) => {
-                  setMedications(newMeds);
-                  setActiveTab('pillbox');
-                  showToast("Ordonnance importée et planifiée dans le pilulier !");
-                }}
-              />
-            )}
-
-          </div>
-        )}
-
-        {/* TAB 3: PROCHE & MÉDECIN HUB */}
-        {activeTab === 'caregiver' && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }} className="animate-slide-up">
-            
-            {/* Apple Segmented Control for Proche & Doctor */}
-            <div className="segmented-control" style={{ maxWidth: '420px', margin: '0 auto 0.5rem auto', width: '100%' }}>
-              <button
-                onClick={() => setCaregiverSubTab('dashboard')}
-                className={`segmented-option ${caregiverSubTab === 'dashboard' ? 'active' : ''}`}
-              >
-                👥 Tableau Proche
-              </button>
-              <button
-                onClick={() => setCaregiverSubTab('report')}
-                className={`segmented-option ${caregiverSubTab === 'report' ? 'active' : ''}`}
-              >
-                📄 Bilan Médecin PDF
-              </button>
-            </div>
-
-            {caregiverSubTab === 'dashboard' && (
+            {caregiverTab === 'dashboard' && (
               <CaregiverView
                 medications={medications}
                 takenSlots={takenSlots}
@@ -243,7 +214,36 @@ export default function App() {
               />
             )}
 
-            {caregiverSubTab === 'report' && (
+            {caregiverTab === 'handScanner' && (
+              <HandPillScanner
+                medications={medications}
+                onValidateSlot={handleValidateSlot}
+                speakText={speakText}
+                timeSlots={TIME_SLOTS}
+              />
+            )}
+
+            {caregiverTab === 'voiceAgent' && (
+              <VoiceAssistantAgent
+                medications={medications}
+                onValidateSlot={handleValidateSlot}
+                onAddSymptom={handleAddSymptom}
+                speakText={speakText}
+                timeSlots={TIME_SLOTS}
+              />
+            )}
+
+            {caregiverTab === 'scanner' && (
+              <IAScanner
+                onImportMedications={(newMeds) => {
+                  setMedications(newMeds);
+                  setCaregiverTab('dashboard');
+                  showToast("Ordonnance importée et planifiée dans le pilulier !");
+                }}
+              />
+            )}
+
+            {caregiverTab === 'report' && (
               <DoctorReport
                 patientProfile={patientProfile}
                 medications={medications}
@@ -251,10 +251,9 @@ export default function App() {
               />
             )}
 
-          </div>
-        )}
-
-      </main>
+          </main>
+        </>
+      )}
 
       {/* Compartment Sheet Popup */}
       <CompartmentModal
@@ -263,33 +262,6 @@ export default function App() {
         onValidateSlot={handleValidateSlot}
         speakText={speakText}
       />
-
-      {/* Mobile Tab Bar */}
-      <nav className="mobile-tab-bar">
-        <button
-          onClick={() => setActiveTab('pillbox')}
-          className={`mobile-tab-btn ${activeTab === 'pillbox' ? 'active' : ''}`}
-        >
-          <div className="nav-icon-container" style={{ fontSize: '1.3rem', lineHeight: 1 }}>🏠</div>
-          <span>Pilulier</span>
-        </button>
-
-        <button
-          onClick={() => setActiveTab('assistants')}
-          className={`mobile-tab-btn ${activeTab === 'assistants' ? 'active' : ''}`}
-        >
-          <div className="nav-icon-container" style={{ fontSize: '1.3rem', lineHeight: 1 }}>✨</div>
-          <span>Assistants IA</span>
-        </button>
-
-        <button
-          onClick={() => setActiveTab('caregiver')}
-          className={`mobile-tab-btn ${activeTab === 'caregiver' ? 'active' : ''}`}
-        >
-          <div className="nav-icon-container" style={{ fontSize: '1.3rem', lineHeight: 1 }}>👥</div>
-          <span>Proche</span>
-        </button>
-      </nav>
 
       {/* Footer */}
       <footer style={{
