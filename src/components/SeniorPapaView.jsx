@@ -42,28 +42,44 @@ export default function SeniorPapaView({
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }} className="animate-slide-up">
       
-      {/* 1. HERO BANNER: CURRENT TIME SLOT FOCUS */}
+      {/* 1. HERO CARD: CURRENT TIME SLOT FOCUS */}
       <div className="card" style={{
         background: isTaken 
-          ? 'linear-gradient(135deg, #15803d, #16a34a)' 
+          ? 'linear-gradient(135deg, #059669, #10b981)' 
           : 'linear-gradient(135deg, #0284c7, #0369a1)',
         color: 'white',
-        borderRadius: '24px',
-        padding: '1.5rem',
+        borderRadius: '28px',
+        padding: '1.65rem',
         border: 'none',
         position: 'relative',
-        overflow: 'hidden'
+        overflow: 'hidden',
+        boxShadow: isTaken 
+          ? '0 16px 35px -8px rgba(16, 185, 129, 0.35)' 
+          : '0 16px 35px -8px rgba(2, 132, 199, 0.35)'
       }}>
         
+        {/* Soft background glow decoration */}
+        <div style={{
+          position: 'absolute',
+          top: '-40px',
+          right: '-40px',
+          width: '180px',
+          height: '180px',
+          background: 'rgba(255, 255, 255, 0.1)',
+          borderRadius: '50%',
+          pointerEvents: 'none'
+        }} />
+
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', position: 'relative', zIndex: 2 }}>
 
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.4rem', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem', flexWrap: 'wrap' }}>
               <span style={{
                 background: 'rgba(255, 255, 255, 0.2)',
-                padding: '0.25rem 0.75rem',
+                backdropFilter: 'blur(8px)',
+                padding: '0.25rem 0.85rem',
                 borderRadius: '999px',
-                fontSize: '0.9rem',
+                fontSize: '0.88rem',
                 fontWeight: 800
               }}>
                 📅 {currentDayLabel}
@@ -71,9 +87,9 @@ export default function SeniorPapaView({
 
               {isTaken && (
                 <span style={{
-                  background: '#dcfce7',
-                  color: '#15803d',
-                  padding: '0.25rem 0.75rem',
+                  background: '#ecfdf5',
+                  color: '#047857',
+                  padding: '0.25rem 0.85rem',
                   borderRadius: '999px',
                   fontSize: '0.85rem',
                   fontWeight: 800,
@@ -87,16 +103,17 @@ export default function SeniorPapaView({
             </div>
 
             <h2 style={{
-              fontSize: '1.75rem',
+              fontSize: '1.85rem',
               fontWeight: 800,
               fontFamily: 'var(--font-family-heading)',
-              margin: '0.25rem 0 0.5rem 0',
-              lineHeight: 1.15
+              margin: '0.25rem 0 0.4rem 0',
+              lineHeight: 1.15,
+              letterSpacing: '-0.02em'
             }}>
               {isTaken ? `Prise du ${selectedSlot} Validée ! 🎉` : `À prendre : ${selectedSlot}`}
             </h2>
 
-            <p style={{ fontSize: '1rem', opacity: 0.95, fontWeight: 500, margin: 0 }}>
+            <p style={{ fontSize: '1.05rem', opacity: 0.95, fontWeight: 500, margin: 0 }}>
               {isTaken 
                 ? "Tous vos comprimés ont été enregistrés avec succès."
                 : `${currentMeds.length} médicament(s) à prendre dans votre pilulier.`
@@ -104,30 +121,31 @@ export default function SeniorPapaView({
             </p>
           </div>
 
-          {/* Action Buttons */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem', width: '100%' }}>
+          {/* Giant Action Button */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', width: '100%' }}>
             
             {!isTaken ? (
               <button
                 onClick={handleValidateCurrent}
                 className="btn-giant btn-success animate-pulse-gentle"
                 style={{
-                  background: '#16a34a',
+                  background: '#10b981',
                   color: 'white',
                   border: '2px solid #ffffff'
                 }}
               >
-                <CheckCircle2 size={28} />
+                <CheckCircle2 size={30} />
                 <span>J'AI PRIS MES CACHETS 🟢</span>
               </button>
             ) : (
               <div style={{
-                background: 'rgba(255,255,255,0.2)',
-                padding: '0.85rem',
-                borderRadius: '16px',
+                background: 'rgba(255,255,255,0.22)',
+                backdropFilter: 'blur(8px)',
+                padding: '0.95rem',
+                borderRadius: '18px',
                 textAlign: 'center',
                 fontWeight: 800,
-                fontSize: '1.05rem'
+                fontSize: '1.1rem'
               }}>
                 ✅ Traitement du {selectedSlot} validé !
               </div>
@@ -136,11 +154,11 @@ export default function SeniorPapaView({
             <button
               onClick={handleSpeakSlotInstructions}
               style={{
-                background: 'rgba(255, 255, 255, 0.2)',
+                background: 'rgba(255, 255, 255, 0.18)',
                 color: 'white',
-                border: '1.5px solid rgba(255,255,255,0.4)',
-                padding: '0.75rem 1rem',
-                borderRadius: '14px',
+                border: '1.5px solid rgba(255,255,255,0.35)',
+                padding: '0.8rem 1rem',
+                borderRadius: '16px',
                 fontWeight: 700,
                 fontSize: '0.95rem',
                 display: 'flex',
@@ -156,9 +174,9 @@ export default function SeniorPapaView({
 
         </div>
 
-        {/* Time slot selector buttons (Grid layout - NO scrollbar!) */}
+        {/* Time slot selector buttons (Minimal Segmented Pill Grid) */}
         <div style={{
-          marginTop: '1.25rem',
+          marginTop: '1.35rem',
           paddingTop: '1rem',
           borderTop: '1px solid rgba(255,255,255,0.2)',
           display: 'grid',
@@ -175,9 +193,9 @@ export default function SeniorPapaView({
                 key={slot.key}
                 onClick={() => setSelectedSlot(slot.key)}
                 style={{
-                  padding: '0.6rem 0.2rem',
-                  borderRadius: '12px',
-                  background: isSelected ? '#ffffff' : 'rgba(255, 255, 255, 0.2)',
+                  padding: '0.65rem 0.2rem',
+                  borderRadius: '14px',
+                  background: isSelected ? '#ffffff' : 'rgba(255, 255, 255, 0.18)',
                   color: isSelected ? 'var(--text-main)' : 'white',
                   fontWeight: 800,
                   fontSize: '0.9rem',
@@ -186,12 +204,13 @@ export default function SeniorPapaView({
                   justifyContent: 'center',
                   gap: '0.25rem',
                   width: '100%',
-                  textAlign: 'center'
+                  textAlign: 'center',
+                  boxShadow: isSelected ? '0 4px 14px rgba(0,0,0,0.12)' : 'none'
                 }}
               >
                 <span>{slot.key === 'Matin' ? '☀️' : slot.key === 'Midi' ? '🌤️' : slot.key === 'Soir' ? '🌅' : '🌙'}</span>
                 <span>{slot.key}</span>
-                {isSlotTaken && <span style={{ color: '#16a34a', fontWeight: 900 }}>✓</span>}
+                {isSlotTaken && <span style={{ color: '#10b981', fontWeight: 900 }}>✓</span>}
               </button>
             );
           })}
@@ -202,7 +221,7 @@ export default function SeniorPapaView({
 
       {/* 2. MEDICATIONS IN THIS TIME SLOT */}
       <div>
-        <h3 style={{ fontSize: '1.25rem', fontWeight: 800, fontFamily: 'var(--font-family-heading)', marginBottom: '0.85rem' }}>
+        <h3 style={{ fontSize: '1.25rem', fontWeight: 800, fontFamily: 'var(--font-family-heading)', marginBottom: '0.85rem', letterSpacing: '-0.015em' }}>
           💊 Case {selectedSlot} ({currentMeds.length} médicaments)
         </h3>
 
@@ -212,12 +231,12 @@ export default function SeniorPapaView({
               key={med.id} 
               className="card card-clickable" 
               style={{
-                borderLeft: `6px solid ${med.pillIcon.includes('yellow') ? '#eab308' : med.pillIcon.includes('blue') ? '#3b82f6' : 'var(--primary)'}`
+                borderLeft: `5px solid ${med.pillIcon.includes('yellow') ? '#f59e0b' : med.pillIcon.includes('blue') ? '#0284c7' : '#10b981'}`
               }}
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.65rem' }}>
                 <div>
-                  <h4 style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--text-main)', margin: 0 }}>
+                  <h4 style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--text-main)', margin: 0, letterSpacing: '-0.01em' }}>
                     {med.name} <span style={{ color: 'var(--primary)', fontSize: '1rem' }}>{med.dosage}</span>
                   </h4>
                   <span className="badge badge-primary" style={{ marginTop: '0.25rem' }}>
@@ -226,16 +245,17 @@ export default function SeniorPapaView({
                 </div>
 
                 <div style={{
-                  width: '38px',
-                  height: '38px',
-                  borderRadius: '10px',
+                  width: '40px',
+                  height: '40px',
+                  borderRadius: '12px',
                   background: med.color,
-                  border: '1px solid var(--border)',
+                  border: '1px solid var(--card-border)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  fontSize: '1.25rem',
-                  flexShrink: 0
+                  fontSize: '1.3rem',
+                  flexShrink: 0,
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.04)'
                 }}>
                   {med.pillIcon === 'capsule-yellow' ? '💊' : med.pillIcon === 'sachet' ? '✉️' : '⚪'}
                 </div>
@@ -243,23 +263,23 @@ export default function SeniorPapaView({
 
               <div style={{
                 background: 'var(--bg-main)',
-                padding: '0.75rem',
-                borderRadius: '12px',
+                padding: '0.75rem 0.85rem',
+                borderRadius: '14px',
                 fontSize: '0.92rem',
                 fontWeight: 600,
                 color: 'var(--text-main)',
                 marginBottom: '0.5rem',
-                border: '1px solid var(--border)'
+                border: '1px solid var(--card-border)'
               }}>
                 📌 {med.instructions}
               </div>
 
               {med.warning && (
                 <div style={{
-                  background: '#fef3c7',
-                  color: '#92400e',
+                  background: '#fffbeb',
+                  color: '#b45309',
                   padding: '0.55rem 0.75rem',
-                  borderRadius: '10px',
+                  borderRadius: '12px',
                   fontSize: '0.85rem',
                   fontWeight: 700,
                   display: 'flex',
@@ -280,7 +300,7 @@ export default function SeniorPapaView({
       <div className="card">
         
         <div style={{ marginBottom: '1.1rem' }}>
-          <h3 style={{ fontSize: '1.35rem', fontWeight: 800, fontFamily: 'var(--font-family-heading)', margin: 0 }}>
+          <h3 style={{ fontSize: '1.35rem', fontWeight: 800, fontFamily: 'var(--font-family-heading)', margin: 0, letterSpacing: '-0.015em' }}>
             📅 Pilulier Physique Semainier
           </h3>
           <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', fontWeight: 500, margin: '0.2rem 0 0 0' }}>
@@ -292,11 +312,11 @@ export default function SeniorPapaView({
         <div style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(7, 1fr)',
-          gap: '0.3rem',
+          gap: '0.35rem',
           width: '100%',
           marginBottom: '1rem',
-          paddingBottom: '0.75rem',
-          borderBottom: '1px solid var(--border)'
+          paddingBottom: '0.85rem',
+          borderBottom: '1px solid var(--card-border)'
         }}>
           {daysOfWeek.map((day) => {
             const isSelectedDay = selectedDayKey === day.key;
@@ -306,15 +326,16 @@ export default function SeniorPapaView({
                 key={day.key}
                 onClick={() => setSelectedDayKey(day.key)}
                 style={{
-                  padding: '0.5rem 0.15rem',
-                  borderRadius: '12px',
+                  padding: '0.55rem 0.15rem',
+                  borderRadius: '14px',
                   background: isSelectedDay ? 'var(--primary)' : isToday ? 'var(--primary-light)' : 'var(--bg-main)',
-                  color: isSelectedDay ? 'white' : isToday ? 'var(--primary)' : 'var(--text-main)',
+                  color: isSelectedDay ? 'white' : isToday ? 'var(--primary-dark)' : 'var(--text-main)',
                   fontWeight: 800,
                   fontSize: '0.88rem',
-                  border: isSelectedDay ? 'none' : '1px solid var(--border)',
+                  border: isSelectedDay ? 'none' : '1px solid var(--card-border)',
                   textAlign: 'center',
-                  width: '100%'
+                  width: '100%',
+                  boxShadow: isSelectedDay ? '0 4px 12px rgba(2, 132, 199, 0.25)' : 'none'
                 }}
               >
                 <div>{day.short}</div>
@@ -337,12 +358,13 @@ export default function SeniorPapaView({
                 key={slot.key}
                 onClick={() => onOpenCompartment(dayObj.label, slot.key, slotMeds, slotTaken)}
                 style={{
-                  padding: '0.85rem 0.5rem',
-                  borderRadius: '16px',
+                  padding: '0.9rem 0.5rem',
+                  borderRadius: '18px',
                   background: slotTaken ? 'var(--success-light)' : 'var(--bg-main)',
-                  border: slotTaken ? '2px solid var(--success)' : '1.5px solid var(--border)',
+                  border: slotTaken ? '1.5px solid var(--success)' : '1px solid var(--card-border)',
                   cursor: 'pointer',
-                  textAlign: 'center'
+                  textAlign: 'center',
+                  transition: 'all 0.2s ease'
                 }}
               >
                 <div style={{ fontWeight: 800, fontSize: '0.92rem', marginBottom: '0.35rem' }}>
@@ -350,7 +372,7 @@ export default function SeniorPapaView({
                 </div>
 
                 {slotTaken ? (
-                  <span style={{ fontSize: '0.8rem', color: 'var(--success)', fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.2rem' }}>
+                  <span style={{ fontSize: '0.8rem', color: 'var(--success-dark)', fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.2rem' }}>
                     <CheckCircle2 size={16} /> Validé
                   </span>
                 ) : (

@@ -14,24 +14,25 @@ export default function Header({
 }) {
 
   const tabsConfig = [
-    { id: 'papa', label: 'Mode Papa', emoji: '👴', icon: null },
-    { id: 'handScanner', label: 'Scan Main', emoji: '🖐️', icon: Hand },
-    { id: 'voiceAgent', label: 'Assistant Vocal', emoji: '🗣️', icon: MessageSquare },
-    { id: 'caregiver', label: 'Mode Proche', emoji: '👥', icon: Heart },
-    { id: 'scanner', label: 'Scan Ordonnance', emoji: '📷', icon: Camera },
-    { id: 'report', label: 'Bilan Médecin', emoji: '📄', icon: FileText },
+    { id: 'papa', label: 'Mode Papa', emoji: '👴' },
+    { id: 'handScanner', label: 'Scan Main', emoji: '🖐️' },
+    { id: 'voiceAgent', label: 'Assistant Vocal', emoji: '🗣️' },
+    { id: 'caregiver', label: 'Mode Proche', emoji: '👥' },
+    { id: 'scanner', label: 'Scan Ordonnance', emoji: '📷' },
+    { id: 'report', label: 'Bilan Médecin', emoji: '📄' },
   ];
 
   return (
     <>
-      {/* Top Header Bar */}
+      {/* Top Floating Glass Header Bar */}
       <header style={{
-        background: 'var(--card-bg)',
-        borderBottom: '1.5px solid var(--border)',
+        background: 'rgba(255, 255, 255, 0.88)',
+        backdropFilter: 'blur(16px)',
+        borderBottom: '1px solid var(--card-border)',
         position: 'sticky',
         top: 0,
         zIndex: 50,
-        boxShadow: '0 2px 12px rgba(0,0,0,0.04)'
+        boxShadow: '0 2px 16px rgba(15, 23, 42, 0.03)'
       }}>
         <div style={{
           maxWidth: '1100px',
@@ -43,20 +44,21 @@ export default function Header({
           gap: '0.75rem'
         }}>
           
-          {/* Brand Logo & Senior Identity */}
+          {/* Brand Identity */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
             <div style={{
-              background: 'linear-gradient(135deg, #0284c7, #16a34a)',
+              background: 'linear-gradient(135deg, #0284c7, #10b981)',
               color: 'white',
               width: '40px',
               height: '40px',
-              borderRadius: '12px',
+              borderRadius: '14px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
+              boxShadow: '0 4px 12px rgba(2, 132, 199, 0.25)',
               flexShrink: 0
             }}>
-              <Pill size={24} />
+              <Pill size={22} />
             </div>
             <div>
               <h1 style={{
@@ -65,7 +67,8 @@ export default function Header({
                 color: 'var(--text-main)',
                 fontFamily: 'var(--font-family-heading)',
                 margin: 0,
-                lineHeight: 1.1
+                lineHeight: 1.1,
+                letterSpacing: '-0.02em'
               }}>
                 CarePill <span style={{ color: 'var(--primary)' }}>AI</span>
               </h1>
@@ -75,9 +78,10 @@ export default function Header({
                 fontWeight: 700,
                 display: 'flex',
                 alignItems: 'center',
-                gap: '0.25rem'
+                gap: '0.25rem',
+                marginTop: '0.1rem'
               }}>
-                <UserCheck size={12} color="#16a34a" /> {patientName}
+                <UserCheck size={12} color="#10b981" /> {patientName}
               </p>
             </div>
           </div>
@@ -86,49 +90,53 @@ export default function Header({
           <nav style={{
             display: 'none',
             background: 'var(--bg-main)',
-            padding: '0.3rem',
-            borderRadius: '14px',
-            border: '1px solid var(--border)',
-            gap: '0.2rem'
+            padding: '0.25rem',
+            borderRadius: '16px',
+            border: '1px solid var(--card-border)',
+            gap: '0.15rem'
           }} className="desktop-nav">
             <style>{`
               @media (min-width: 768px) {
                 .desktop-nav { display: flex !important; }
               }
             `}</style>
-            {tabsConfig.map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setCurrentTab(tab.id)}
-                style={{
-                  padding: '0.55rem 0.95rem',
-                  borderRadius: '10px',
-                  fontSize: '0.9rem',
-                  fontWeight: 700,
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.4rem',
-                  background: currentTab === tab.id ? 'var(--primary)' : 'transparent',
-                  color: currentTab === tab.id ? 'white' : 'var(--text-main)'
-                }}
-              >
-                <span>{tab.emoji}</span>
-                <span>{tab.label}</span>
-              </button>
-            ))}
+            {tabsConfig.map((tab) => {
+              const isSelected = currentTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setCurrentTab(tab.id)}
+                  style={{
+                    padding: '0.5rem 0.85rem',
+                    borderRadius: '12px',
+                    fontSize: '0.88rem',
+                    fontWeight: 700,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.35rem',
+                    background: isSelected ? 'var(--card-bg)' : 'transparent',
+                    color: isSelected ? 'var(--primary)' : 'var(--text-muted)',
+                    boxShadow: isSelected ? '0 2px 8px rgba(0,0,0,0.05)' : 'none'
+                  }}
+                >
+                  <span style={{ fontSize: '1rem' }}>{tab.emoji}</span>
+                  <span>{tab.label}</span>
+                </button>
+              );
+            })}
           </nav>
 
-          {/* Accessibility Toolbar Controls */}
+          {/* Minimal Accessibility Bar */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
             <button
               onClick={() => setSpeechEnabled(!speechEnabled)}
-              title="Lecture vocale"
+              title="Synthèse vocale"
               style={{
                 padding: '0.45rem 0.65rem',
-                borderRadius: '10px',
-                border: '1px solid var(--border)',
+                borderRadius: '12px',
+                border: '1px solid var(--card-border)',
                 background: speechEnabled ? 'var(--success-light)' : 'var(--card-bg)',
-                color: speechEnabled ? 'var(--success)' : 'var(--text-muted)',
+                color: speechEnabled ? 'var(--success-dark)' : 'var(--text-muted)',
                 fontSize: '0.8rem',
                 fontWeight: 700,
                 display: 'flex',
@@ -143,11 +151,11 @@ export default function Header({
 
             <button
               onClick={() => setHighContrast(!highContrast)}
-              title="Haut Contraste"
+              title="Mode Haut Contraste"
               style={{
                 padding: '0.45rem 0.65rem',
-                borderRadius: '10px',
-                border: '1px solid var(--border)',
+                borderRadius: '12px',
+                border: '1px solid var(--card-border)',
                 background: highContrast ? '#fef08a' : 'var(--card-bg)',
                 color: highContrast ? '#854d0e' : 'var(--text-muted)',
                 fontSize: '0.8rem',
@@ -164,8 +172,8 @@ export default function Header({
               display: 'flex',
               alignItems: 'center',
               background: 'var(--bg-main)',
-              border: '1px solid var(--border)',
-              borderRadius: '10px',
+              border: '1px solid var(--card-border)',
+              borderRadius: '12px',
               padding: '0.15rem'
             }}>
               <button
@@ -189,7 +197,7 @@ export default function Header({
         </div>
       </header>
 
-      {/* Mobile Bottom Navigation Bar (< 768px) */}
+      {/* Glass Bottom Navigation Bar (< 768px) */}
       <nav className="mobile-bottom-nav">
         {tabsConfig.map((tab) => {
           const isActive = currentTab === tab.id;
@@ -199,7 +207,7 @@ export default function Header({
               onClick={() => setCurrentTab(tab.id)}
               className={`mobile-nav-item ${isActive ? 'active' : ''}`}
             >
-              <div className="nav-icon-container" style={{ fontSize: '1.25rem', lineHeight: 1 }}>
+              <div className="nav-icon-container" style={{ fontSize: '1.2rem', lineHeight: 1 }}>
                 {tab.emoji}
               </div>
               <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '64px' }}>
