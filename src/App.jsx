@@ -209,6 +209,11 @@ export default function App() {
   // Subscribe to Real-time Cross-Device Events
   useEffect(() => {
     const unsubscribe = RealtimeCloudSync.subscribe((event) => {
+      // Ignore self-sent messages loopback on sender device
+      if (event.senderDeviceId && event.senderDeviceId === RealtimeCloudSync.getDeviceId()) {
+        return;
+      }
+
       if (event.type === 'SLOT_VALIDATED') {
         const key = `${event.dayKey}-${event.slotKey}`;
         setTakenSlots(prev => ({ ...prev, [key]: true }));
@@ -222,6 +227,7 @@ export default function App() {
       }
 
       if (event.type === 'NUDGE_RECEIVED') {
+        // Nudge message MUST ONLY pop up on Senior Papa screen, NOT on Child screen!
         setIncomingNudge(event);
 
         try {
@@ -236,7 +242,7 @@ export default function App() {
         try {
           confetti({ particleCount: 60, spread: 50, origin: { y: 0.7 } });
         } catch (e) {}
-        showToast(`👁️ CONFIRMATION : ${event.patientName} a lu et écouté votre message à ${event.timestamp} !`);
+        showToast(`👁️ ACCUSÉ DE LECTURE : ${event.patientName} a lu et écouté votre message à ${event.timestamp} !`);
       }
 
       if (event.type === 'PING_TEST') {
@@ -313,6 +319,14 @@ export default function App() {
             onSwitchToCaregiver={() => setShowPinModal(true)}
             incomingNudge={incomingNudge}
             onClearNudge={() => setIncomingNudge(null)}
+          />
+
+          {/* High-Priority Incoming Nudge Popup Modal STRICTLY ON PATIENT SCREEN */}
+          <NudgeModal
+            nudgeData={incomingNudge}
+            onClose={() => setIncomingNudge(null)}
+            speakText={speakText}
+            patientName={patientProfile.name}
           />
         </main>
       ) : (
@@ -449,14 +463,6 @@ export default function App() {
           </main>
         </>
       )}
-
-      {/* High-Priority Incoming Nudge Popup Modal */}
-      <NudgeModal
-        nudgeData={incomingNudge}
-        onClose={() => setIncomingNudge(null)}
-        speakText={speakText}
-        patientName={patientProfile.name}
-      />
 
       {/* Onboarding Guide Modal */}
       <OnboardingModal
