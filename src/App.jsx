@@ -250,26 +250,30 @@ export default function App() {
   }, [textSize, highContrast, speechEnabled]);
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--system-bg)' }}>
+    <div style={{ minHeight: '100dvh', width: '100%', maxWidth: '100vw', overflowX: 'hidden', display: 'flex', flexDirection: 'column', background: 'var(--canvas-bg)', boxSizing: 'border-box' }}>
       
       {/* Toast Notification Bar */}
       {toastMessage && (
         <div style={{
           position: 'fixed',
           bottom: '24px',
-          right: '20px',
+          right: '16px',
+          left: '16px',
+          maxWidth: '420px',
+          margin: '0 auto',
           zIndex: 120,
-          background: 'var(--system-text)',
-          color: 'var(--system-bg)',
-          padding: '0.9rem 1.35rem',
-          borderRadius: '20px',
-          boxShadow: 'var(--shadow-lg)',
+          background: 'var(--text-main)',
+          color: '#ffffff',
+          padding: '0.85rem 1.25rem',
+          borderRadius: '18px',
+          boxShadow: 'var(--shadow-card-hover)',
           fontWeight: 700,
-          fontSize: '0.98rem',
+          fontSize: '0.92rem',
           display: 'flex',
           alignItems: 'center',
-          gap: '0.65rem',
-          animation: 'fadeIn 0.25s ease'
+          gap: '0.6rem',
+          animation: 'fadeIn 0.25s ease',
+          boxSizing: 'border-box'
         }}>
           <span>{toastMessage}</span>
         </div>
@@ -277,7 +281,7 @@ export default function App() {
 
       {/* MODE 1: DAD'S ZERO-FRICTION 1-CARD VIEW */}
       {appMode === 'papa' ? (
-        <main style={{ flex: 1, padding: '1.5rem 1rem', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+        <main style={{ flex: 1, padding: '1rem 0.85rem', display: 'flex', flexDirection: 'column', justifyContent: 'center', width: '100%', maxWidth: '100vw', boxSizing: 'border-box' }}>
           <SeniorPapaView
             medications={medications}
             takenSlots={takenSlots}
@@ -306,32 +310,32 @@ export default function App() {
             onOpenPairing={() => setShowPairingModal(true)}
           />
 
-          <main style={{ flex: 1, maxWidth: '1060px', width: '100%', margin: '0 auto', padding: '1.5rem 1rem' }}>
+          <main style={{ flex: 1, maxWidth: '1060px', width: '100%', margin: '0 auto', padding: '1rem 0.85rem', boxSizing: 'border-box' }}>
             
             {/* Back to Dad's Screen Button */}
-            <div style={{ marginBottom: '1.25rem' }}>
+            <div style={{ marginBottom: '1rem' }}>
               <button
                 onClick={() => setAppMode('papa')}
                 style={{
-                  padding: '0.6rem 1.1rem',
-                  borderRadius: '14px',
-                  background: 'var(--system-card-bg)',
+                  padding: '0.55rem 1rem',
+                  borderRadius: '12px',
+                  background: 'var(--card-surface)',
                   border: '1px solid var(--system-card-border)',
-                  color: 'var(--accent-primary)',
-                  fontSize: '0.9rem',
+                  color: 'var(--header-blue-1)',
+                  fontSize: '0.88rem',
                   fontWeight: 800,
                   display: 'inline-flex',
                   alignItems: 'center',
-                  gap: '0.5rem',
-                  boxShadow: 'var(--shadow-sm)'
+                  gap: '0.4rem',
+                  boxShadow: 'var(--shadow-card-master)'
                 }}
               >
-                <ArrowLeft size={18} /> Revenir à l'écran de {patientProfile.name}
+                <ArrowLeft size={16} /> Revenir à l'écran de {patientProfile.name}
               </button>
             </div>
 
             {/* Segmented control for Caregiver sub-features */}
-            <div className="segmented-control" style={{ maxWidth: '680px', margin: '0 auto 1.5rem auto', width: '100%' }}>
+            <div className="segmented-control" style={{ maxWidth: '680px', margin: '0 auto 1.25rem auto', width: '100%' }}>
               <button
                 onClick={() => setCaregiverTab('dashboard')}
                 className={`segmented-option ${caregiverTab === 'dashboard' ? 'active' : ''}`}
@@ -459,14 +463,16 @@ export default function App() {
       {/* Footer */}
       <footer style={{
         textAlign: 'center',
-        padding: '1.5rem',
+        padding: '1.25rem',
         borderTop: '1px solid var(--system-card-border)',
-        fontSize: '0.85rem',
-        color: 'var(--system-text-tertiary)',
+        fontSize: '0.82rem',
+        color: 'var(--text-secondary)',
         fontWeight: 600,
-        background: 'var(--system-card-bg)'
+        background: 'var(--card-surface)',
+        width: '100%',
+        boxSizing: 'border-box'
       }}>
-        CarePill AI © 2026 • Dissociated Senior / Caregiver Roles 🔒
+        CarePill AI © 2026 • 100% Responsive & Zero-Overflow UI 🔒
       </footer>
 
     </div>

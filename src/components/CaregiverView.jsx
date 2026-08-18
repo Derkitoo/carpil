@@ -69,26 +69,26 @@ export default function CaregiverView({
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }} className="animate-slide-up">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', width: '100%', maxWidth: '100%', boxSizing: 'border-box' }} className="animate-slide-up">
       
       {/* 🔮 1. PREDICTIVE HEALTH RISK AI CARD (HERO MINT/ICE CONTAINER) */}
       <div className="hero-challenge-card">
-        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap', width: '100%' }}>
           
-          <div style={{ flex: 1, minWidth: '280px' }}>
-            <div className="badge-pill" style={{ background: '#FFFFFF', color: 'var(--header-blue-1)', marginBottom: '0.6rem', boxShadow: 'var(--shadow-card-master)' }}>
-              <Sparkles size={16} color="var(--header-blue-1)" /> Moteur IA Prédictif de Santé
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div className="badge-pill" style={{ background: '#FFFFFF', color: 'var(--header-blue-1)', marginBottom: '0.5rem', boxShadow: 'var(--shadow-card-master)' }}>
+              <Sparkles size={15} color="var(--header-blue-1)" /> Moteur IA Prédictif de Santé
             </div>
 
-            <h3 style={{ fontSize: '1.45rem', fontWeight: 800, margin: '0 0 0.3rem 0', color: 'var(--text-main)' }}>
+            <h3 style={{ fontSize: '1.35rem', fontWeight: 800, margin: '0 0 0.25rem 0', color: 'var(--text-main)', wordBreak: 'break-word' }}>
               {riskAnalysis.title}
             </h3>
 
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem', fontWeight: 600, margin: '0 0 0.85rem 0' }}>
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', fontWeight: 600, margin: '0 0 0.75rem 0', wordBreak: 'break-word' }}>
               {riskAnalysis.description}
             </p>
 
-            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
               <span className={`badge-pill ${riskAnalysis.riskLevel === 'high' ? 'badge-danger' : riskAnalysis.riskLevel === 'medium' ? 'badge-warning' : 'badge-success'}`}>
                 Niveau de Risque : {(riskAnalysis.riskLevel || 'low').toUpperCase()}
               </span>
@@ -98,11 +98,11 @@ export default function CaregiverView({
             </div>
           </div>
 
-          <div style={{ textAlign: 'right' }}>
-            <div style={{ fontSize: '2.1rem', fontWeight: 900, color: 'var(--header-blue-1)' }}>
+          <div style={{ textAlign: 'right', flexShrink: 0 }}>
+            <div style={{ fontSize: '1.9rem', fontWeight: 900, color: 'var(--header-blue-1)' }}>
               {adherenceRate}%
             </div>
-            <div style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-secondary)' }}>
+            <div style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-secondary)' }}>
               Observance Hebdomadaire
             </div>
           </div>
@@ -110,25 +110,25 @@ export default function CaregiverView({
         </div>
       </div>
 
-      {/* 🧱 2. GRILLE DE CATÉGORIES (2 COLONNES) */}
+      {/* 🧱 2. GRILLE DE CATÉGORIES (1 Col Mobile < 640px, 2 Col >= 640px) */}
       <div className="category-grid-2col">
 
         {/* Category Card 1: Observance (Cyan Accent) */}
         <div className="category-card">
           <div>
             <div className="icon-pod icon-pod-cyan">
-              <Activity size={24} />
+              <Activity size={22} />
             </div>
-            <h4 style={{ fontSize: '1.1rem', fontWeight: 600, color: 'var(--text-main)' }}>
+            <h4 style={{ fontSize: '1.05rem', fontWeight: 600, color: 'var(--text-main)' }}>
               Observance du Traitement
             </h4>
-            <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', fontWeight: 500, marginTop: '0.25rem' }}>
+            <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', fontWeight: 500, marginTop: '0.2rem' }}>
               {takenSlotsCount} prises certifiées cette semaine.
             </p>
           </div>
 
           <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', fontWeight: 700, marginTop: '0.85rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.82rem', fontWeight: 700, marginTop: '0.75rem' }}>
               <span style={{ color: 'var(--text-secondary)' }}>Ratio Hebdo</span>
               <span style={{ color: 'var(--theme-cyan)' }}>{takenSlotsCount}/28</span>
             </div>
@@ -142,27 +142,27 @@ export default function CaregiverView({
         <div className="category-card">
           <div>
             <div className="icon-pod icon-pod-yellow">
-              <Users size={24} />
+              <Users size={22} />
             </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h4 style={{ fontSize: '1.1rem', fontWeight: 600, color: 'var(--text-main)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.5rem' }}>
+              <h4 style={{ fontSize: '1.05rem', fontWeight: 600, color: 'var(--text-main)', minWidth: 0 }}>
                 Fiche Patient & Contact
               </h4>
               <button
                 onClick={() => setIsEditingProfile(!isEditingProfile)}
-                style={{ background: 'transparent', color: 'var(--theme-yellow)', fontWeight: 800, fontSize: '0.85rem' }}
+                style={{ background: 'transparent', color: 'var(--theme-yellow)', fontWeight: 800, fontSize: '0.82rem', flexShrink: 0 }}
               >
                 {isEditingProfile ? 'Annuler' : 'Modifier'}
               </button>
             </div>
             
-            <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', fontWeight: 500, marginTop: '0.25rem' }}>
+            <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', fontWeight: 500, marginTop: '0.2rem', wordBreak: 'break-word' }}>
               {safePatientName} • {safeAge} ans • Tél: {safeContact}
             </p>
           </div>
 
           <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', fontWeight: 700, marginTop: '0.85rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.82rem', fontWeight: 700, marginTop: '0.75rem' }}>
               <span style={{ color: 'var(--text-secondary)' }}>Mise à jour</span>
               <span style={{ color: 'var(--theme-yellow)' }}>Certifiée ✓</span>
             </div>
@@ -176,33 +176,33 @@ export default function CaregiverView({
         <div className="category-card">
           <div>
             <div className="icon-pod icon-pod-pink">
-              <MessageSquare size={24} />
+              <MessageSquare size={22} />
             </div>
-            <h4 style={{ fontSize: '1.1rem', fontWeight: 600, color: 'var(--text-main)' }}>
+            <h4 style={{ fontSize: '1.05rem', fontWeight: 600, color: 'var(--text-main)' }}>
               Transmission d'Alerte Vocale
             </h4>
-            <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', fontWeight: 500, marginTop: '0.25rem' }}>
+            <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', fontWeight: 500, marginTop: '0.2rem' }}>
               Envoyer un encouragement ou rappel énoncé à voix haute.
             </p>
           </div>
 
-          <form onSubmit={handleSendNoticeSubmit} style={{ marginTop: '0.85rem' }}>
-            <div style={{ display: 'flex', gap: '0.5rem' }}>
+          <form onSubmit={handleSendNoticeSubmit} style={{ marginTop: '0.75rem', width: '100%' }}>
+            <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', width: '100%' }}>
               <input
                 type="text"
                 placeholder="Message à lire à voix haute..."
                 value={noticeMessageInput}
                 onChange={(e) => setNoticeMessageInput(e.target.value)}
                 style={{
-                  flex: 1, padding: '0.55rem 0.85rem', borderRadius: '12px',
+                  flex: 1, minWidth: '140px', padding: '0.5rem 0.75rem', borderRadius: '12px',
                   border: '1px solid var(--system-card-border)', background: 'var(--canvas-bg)',
-                  fontSize: '0.85rem', fontWeight: 600
+                  fontSize: '0.82rem', fontWeight: 600, boxSizing: 'border-box'
                 }}
               />
               <button
                 type="submit"
                 className="btn-primary"
-                style={{ padding: '0.55rem 1rem', borderRadius: '12px', fontSize: '0.85rem', fontWeight: 800, background: 'var(--theme-pink)' }}
+                style={{ padding: '0.5rem 0.85rem', borderRadius: '12px', fontSize: '0.82rem', fontWeight: 800, background: 'var(--theme-pink)', flexShrink: 0 }}
               >
                 Envoyer
               </button>
@@ -217,18 +217,18 @@ export default function CaregiverView({
         <div className="category-card">
           <div>
             <div className="icon-pod icon-pod-green">
-              <Heart size={24} />
+              <Heart size={22} />
             </div>
-            <h4 style={{ fontSize: '1.1rem', fontWeight: 600, color: 'var(--text-main)' }}>
+            <h4 style={{ fontSize: '1.05rem', fontWeight: 600, color: 'var(--text-main)' }}>
               Journal de Santé ({symptomsLog.length} entrées)
             </h4>
-            <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', fontWeight: 500, marginTop: '0.25rem' }}>
+            <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', fontWeight: 500, marginTop: '0.2rem', wordBreak: 'break-word' }}>
               Dernier symptôme : {symptomsLog[0]?.text || "Aucun symptôme signalé."}
             </p>
           </div>
 
           <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', fontWeight: 700, marginTop: '0.85rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.82rem', fontWeight: 700, marginTop: '0.75rem' }}>
               <span style={{ color: 'var(--text-secondary)' }}>Stabilité</span>
               <span style={{ color: 'var(--theme-green)' }}>Bonne (92%)</span>
             </div>

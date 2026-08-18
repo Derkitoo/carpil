@@ -67,29 +67,27 @@ export default function FamilyPairingModal({ isOpen, onClose, onToast }) {
   return (
     <div style={{
       position: 'fixed',
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
+      top: 0, left: 0, right: 0, bottom: 0,
       zIndex: 200,
-      background: 'rgba(0, 0, 0, 0.72)',
+      background: 'rgba(0, 0, 0, 0.75)',
       backdropFilter: 'blur(10px)',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      padding: '1rem'
+      padding: '0.85rem'
     }} className="animate-fade-in">
       
       <div className="card" style={{
-        maxWidth: '560px',
+        maxWidth: '540px',
         width: '100%',
-        padding: '2rem',
+        padding: '1.5rem',
         position: 'relative',
-        borderRadius: '28px',
-        boxShadow: 'var(--shadow-xl)',
-        background: 'var(--system-card-bg)',
-        maxHeight: '92vh',
-        overflowY: 'auto'
+        borderRadius: '24px',
+        boxShadow: 'var(--shadow-card-hover)',
+        background: 'var(--card-surface)',
+        maxHeight: '90dvh',
+        overflowY: 'auto',
+        boxSizing: 'border-box'
       }}>
         
         {/* Close Button */}
@@ -100,70 +98,73 @@ export default function FamilyPairingModal({ isOpen, onClose, onToast }) {
           }}
           style={{
             position: 'absolute',
-            top: '1.25rem',
-            right: '1.25rem',
-            background: 'var(--system-bg)',
+            top: '1rem',
+            right: '1rem',
+            background: 'var(--canvas-bg)',
             border: 'none',
             borderRadius: '50%',
-            width: '40px',
-            height: '40px',
+            width: '36px',
+            height: '36px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             cursor: 'pointer',
-            color: 'var(--system-text)'
+            color: 'var(--text-main)'
           }}
         >
-          <X size={22} />
+          <X size={20} />
         </button>
 
         {/* Modal Header */}
-        <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
+        <div style={{ textAlign: 'center', marginBottom: '1.25rem' }}>
           <div style={{
             display: 'inline-flex',
             alignItems: 'center',
-            gap: '0.5rem',
+            gap: '0.4rem',
             background: 'var(--accent-primary-light)',
             color: 'var(--accent-primary)',
-            padding: '0.4rem 1rem',
-            borderRadius: '999px',
-            fontSize: '0.85rem',
+            padding: '0.35rem 0.85rem',
+            borderRadius: '9999px',
+            fontSize: '0.82rem',
             fontWeight: 800,
-            marginBottom: '0.75rem'
+            marginBottom: '0.65rem',
+            maxWidth: '100%'
           }}>
-            <Wifi size={16} /> QR Code Matériel ISO & Liaison Cloud
+            <Wifi size={15} /> QR Code Matériel ISO & Liaison Cloud
           </div>
-          <h3 style={{ fontSize: '1.75rem', fontWeight: 800, margin: 0, fontFamily: 'var(--font-display)' }}>
+          <h3 style={{ fontSize: '1.45rem', fontWeight: 800, margin: 0, fontFamily: 'var(--font-family-master)', wordBreak: 'break-word' }}>
             Jumelage Appareil Enfant ↔ Senior
           </h3>
-          <p style={{ color: 'var(--system-text-secondary)', fontSize: '0.92rem', fontWeight: 600, marginTop: '0.35rem' }}>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '0.88rem', fontWeight: 600, marginTop: '0.25rem', wordBreak: 'break-word' }}>
             Scannez ce QR Code avec l'appareil photo d'un smartphone pour synchroniser automatiquement les 2 téléphones en direct !
           </p>
         </div>
 
         {/* Live Status Badge */}
         <div style={{
-          background: 'var(--accent-success-light)',
-          border: '1.5px solid var(--accent-success)',
-          color: 'var(--accent-success)',
-          padding: '0.75rem 1.1rem',
-          borderRadius: '18px',
+          background: 'var(--hero-bg-mint)',
+          border: '1.5px solid var(--accent-green-1)',
+          color: 'var(--accent-green-1)',
+          padding: '0.65rem 0.95rem',
+          borderRadius: '16px',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          marginBottom: '1.25rem'
+          marginBottom: '1.15rem',
+          gap: '0.5rem',
+          flexWrap: 'wrap'
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', fontWeight: 800, fontSize: '0.92rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 800, fontSize: '0.88rem' }}>
             <span style={{
-              width: '10px',
-              height: '10px',
+              width: '8px',
+              height: '8px',
               borderRadius: '50%',
-              background: 'var(--accent-success)',
-              boxShadow: '0 0 10px var(--accent-success)'
+              background: 'var(--accent-green-1)',
+              boxShadow: '0 0 8px var(--accent-green-1)'
             }} />
             Relais WebSockets En Direct
           </div>
-          <span style={{ fontSize: '0.85rem', fontWeight: 700 }}>
+          <span style={{ fontSize: '0.82rem', fontWeight: 700 }}>
             Latence : {status.latencyMs}ms
           </span>
         </div>
@@ -171,86 +172,91 @@ export default function FamilyPairingModal({ isOpen, onClose, onToast }) {
         {/* REAL SCANNABLE ISO QR CODE CONTAINER */}
         {!isCameraActive ? (
           <div style={{
-            background: 'var(--system-bg)',
-            padding: '1.5rem 1rem',
-            borderRadius: '24px',
+            background: 'var(--canvas-bg)',
+            padding: '1.25rem 0.85rem',
+            borderRadius: '20px',
             border: '1px solid var(--system-card-border)',
             textAlign: 'center',
-            marginBottom: '1.25rem'
+            marginBottom: '1.15rem',
+            width: '100%',
+            boxSizing: 'border-box'
           }}>
             {/* Real ISO 18004 QR Code Matrix Image */}
             <div style={{
               background: 'white',
-              padding: '1rem',
-              borderRadius: '20px',
+              padding: '0.85rem',
+              borderRadius: '16px',
               display: 'inline-block',
-              boxShadow: 'var(--shadow-md)',
-              marginBottom: '1rem'
+              boxShadow: 'var(--shadow-card-master)',
+              marginBottom: '0.85rem',
+              maxWidth: '100%'
             }}>
               <img
                 src={realQrCodeApiUrl}
                 onError={(e) => { e.target.src = fallbackQrCodeApiUrl; }}
                 alt="Real ISO Scannable QR Code"
                 style={{
-                  width: '200px',
-                  height: '200px',
+                  width: '180px',
+                  height: '180px',
+                  maxWidth: '100%',
                   display: 'block',
-                  borderRadius: '12px'
+                  borderRadius: '10px'
                 }}
               />
             </div>
 
-            <div style={{ fontSize: '0.82rem', color: 'var(--system-text-secondary)', fontWeight: 700 }}>
+            <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', fontWeight: 700 }}>
               Code de Liaison Unique de la Famille :
             </div>
             <div style={{
-              fontSize: '1.75rem',
+              fontSize: '1.6rem',
               fontWeight: 900,
-              letterSpacing: '3px',
-              color: 'var(--accent-primary)',
+              letterSpacing: '2px',
+              color: 'var(--header-blue-1)',
               fontFamily: 'monospace',
-              marginTop: '0.15rem'
+              marginTop: '0.1rem',
+              wordBreak: 'break-all'
             }}>
               {familyCode}
             </div>
 
-            <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center', marginTop: '1rem' }}>
+            <div style={{ display: 'flex', gap: '0.6rem', justifyContent: 'center', marginTop: '0.85rem', flexWrap: 'wrap' }}>
               <button
                 onClick={handleCopyLink}
                 style={{
-                  padding: '0.65rem 1.1rem',
-                  borderRadius: '14px',
+                  padding: '0.6rem 0.95rem',
+                  borderRadius: '12px',
                   background: 'var(--accent-primary-light)',
                   color: 'var(--accent-primary)',
                   border: 'none',
                   fontWeight: 800,
-                  fontSize: '0.88rem',
+                  fontSize: '0.82rem',
                   cursor: 'pointer',
                   display: 'inline-flex',
                   alignItems: 'center',
-                  gap: '0.4rem'
+                  gap: '0.35rem'
                 }}
               >
-                <Copy size={16} /> Copier le Lien Direct 📋
+                <Copy size={15} /> Copier le Lien Direct 📋
               </button>
 
               <button
                 onClick={startCameraScan}
                 style={{
-                  padding: '0.65rem 1.1rem',
-                  borderRadius: '14px',
-                  background: 'var(--system-card-bg)',
-                  color: 'var(--system-text)',
+                  padding: '0.6rem 0.95rem',
+                  borderRadius: '12px',
+                  background: 'var(--card-surface)',
+                  color: 'var(--text-main)',
                   border: '1px solid var(--system-card-border)',
                   fontWeight: 800,
-                  fontSize: '0.88rem',
+                  fontSize: '0.82rem',
                   cursor: 'pointer',
                   display: 'inline-flex',
                   alignItems: 'center',
-                  gap: '0.4rem'
+                  gap: '0.35rem'
                 }}
               >
-                <Camera size={16} /> Scanner avec Caméra 📷
+                <Camera size={15} /> Scanner avec Caméra 📷
               </button>
             </div>
           </div>
@@ -258,30 +264,31 @@ export default function FamilyPairingModal({ isOpen, onClose, onToast }) {
           /* Live Camera Stream Scanner View */
           <div style={{
             background: '#000000',
-            padding: '1.25rem',
-            borderRadius: '24px',
+            padding: '1rem',
+            borderRadius: '20px',
             textAlign: 'center',
             color: '#ffffff',
-            marginBottom: '1.25rem'
+            marginBottom: '1.15rem'
           }}>
             <video
               ref={videoRef}
               autoPlay
               playsInline
-              style={{ width: '100%', maxHeight: '240px', borderRadius: '16px', objectFit: 'cover', marginBottom: '1rem' }}
+              style={{ width: '100%', maxHeight: '220px', borderRadius: '14px', objectFit: 'cover', marginBottom: '0.85rem' }}
             />
-            <p style={{ fontSize: '0.88rem', fontWeight: 600, margin: '0 0 1rem 0' }}>
+            <p style={{ fontSize: '0.82rem', fontWeight: 600, margin: '0 0 0.85rem 0' }}>
               Pointez la caméra vers le QR Code affiché sur le téléphone de votre proche.
             </p>
             <button
               onClick={stopCamera}
               style={{
-                padding: '0.6rem 1.2rem',
-                borderRadius: '14px',
+                padding: '0.55rem 1.1rem',
+                borderRadius: '12px',
                 background: '#ff3b30',
                 color: '#ffffff',
                 border: 'none',
-                fontWeight: 800
+                fontWeight: 800,
+                fontSize: '0.85rem'
               }}
             >
               Fermer la Caméra ✖
@@ -290,26 +297,28 @@ export default function FamilyPairingModal({ isOpen, onClose, onToast }) {
         )}
 
         {/* Pair with another device form */}
-        <form onSubmit={handleSaveCode} style={{ display: 'flex', gap: '0.75rem' }}>
+        <form onSubmit={handleSaveCode} style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', width: '100%' }}>
           <input
             type="text"
-            placeholder="Ou saisissez un code (ex: CARPIL-8842)"
+            placeholder="Saisissez un code (ex: CARPIL-8842)"
             value={inputCode}
             onChange={(e) => setInputCode(e.target.value)}
             style={{
               flex: 1,
-              padding: '0.75rem 1rem',
-              borderRadius: '16px',
+              minWidth: '150px',
+              padding: '0.65rem 0.85rem',
+              borderRadius: '14px',
               border: '1px solid var(--system-card-border)',
-              background: 'var(--system-bg)',
+              background: 'var(--canvas-bg)',
               fontWeight: 700,
-              fontSize: '0.92rem'
+              fontSize: '0.85rem',
+              boxSizing: 'border-box'
             }}
           />
           <button
             type="submit"
             className="btn-primary"
-            style={{ padding: '0.75rem 1.2rem', borderRadius: '16px', fontWeight: 800 }}
+            style={{ padding: '0.65rem 1rem', borderRadius: '14px', fontWeight: 800, fontSize: '0.85rem', flexShrink: 0 }}
           >
             Connecter 🔗
           </button>

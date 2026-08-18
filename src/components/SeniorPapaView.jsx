@@ -69,75 +69,78 @@ export default function SeniorPapaView({
     : 'JM';
 
   return (
-    <div style={{ maxWidth: '620px', margin: '0 auto', minHeight: '80vh', display: 'flex', flexDirection: 'column', gap: '1.25rem' }} className="animate-slide-up">
+    <div style={{ maxWidth: '620px', width: '100%', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '1.15rem', boxSizing: 'border-box' }} className="animate-slide-up">
       
       {/* 1. Curved Top Header Bar (Orange Chaleureux #FFA629 / #FF9F1C) */}
-      <div className="header-curved-orange" style={{ padding: '1.25rem 1.35rem' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div className="header-curved-orange" style={{ padding: '1rem 1.15rem' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.65rem' }}>
           
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', minWidth: 0, flexShrink: 1 }}>
             <div style={{
-              width: '42px',
-              height: '42px',
+              width: '38px',
+              height: '38px',
               borderRadius: '50%',
               background: '#FFFFFF',
               color: 'var(--header-orange-1)',
               fontWeight: 800,
-              fontSize: '1rem',
+              fontSize: '0.92rem',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)'
+              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+              flexShrink: 0
             }}>
               {patientInitials}
             </div>
             
-            <div>
-              <div style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: 'rgba(255, 255, 255, 0.95)', fontWeight: 800, letterSpacing: '0.04em' }}>
+            <div style={{ minWidth: 0 }}>
+              <div style={{ fontSize: '0.72rem', textTransform: 'uppercase', color: 'rgba(255, 255, 255, 0.95)', fontWeight: 800, letterSpacing: '0.04em' }}>
                 PATIENT SUIVI
               </div>
-              <div style={{ fontSize: '1.05rem', fontWeight: 800, color: '#FFFFFF' }}>
+              <div style={{ fontSize: '0.98rem', fontWeight: 800, color: '#FFFFFF', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                 Espace Personnalisé de {patientName}
               </div>
             </div>
           </div>
 
-          <div style={{ display: 'flex', gap: '0.45rem' }}>
+          <div style={{ display: 'flex', gap: '0.4rem', flexShrink: 0 }}>
             <button
               onClick={() => setShowCallModal(true)}
               style={{
-                padding: '0.45rem 0.75rem',
+                padding: '0.4rem 0.65rem',
                 borderRadius: '9999px',
                 background: 'rgba(255, 255, 255, 0.22)',
                 backdropFilter: 'blur(10px)',
                 color: '#FFFFFF',
                 border: '1px solid rgba(255, 255, 255, 0.35)',
-                fontSize: '0.8rem',
+                fontSize: '0.78rem',
                 fontWeight: 800,
                 display: 'flex',
                 alignItems: 'center',
-                gap: '0.35rem'
+                gap: '0.3rem',
+                whiteSpace: 'nowrap'
               }}
             >
-              <PhoneCall size={14} /> Rappel Vocal
+              <PhoneCall size={13} /> Rappel Vocal
             </button>
 
             <button
               onClick={onSwitchToCaregiver}
               style={{
-                padding: '0.45rem 0.85rem',
+                padding: '0.4rem 0.75rem',
                 borderRadius: '9999px',
                 background: '#FFFFFF',
                 color: 'var(--header-orange-1)',
-                fontSize: '0.8rem',
+                fontSize: '0.78rem',
                 fontWeight: 800,
                 display: 'flex',
                 alignItems: 'center',
-                gap: '0.35rem',
-                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.12)'
+                gap: '0.3rem',
+                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.12)',
+                whiteSpace: 'nowrap'
               }}
             >
-              <Heart size={14} color="var(--accent-reward)" /> Espace Enfant
+              <Heart size={13} color="var(--accent-reward)" /> Espace Enfant
             </button>
           </div>
 
@@ -146,22 +149,22 @@ export default function SeniorPapaView({
 
       {/* 2. Hero Challenge Card (Mint / Ice Container #EBF5FF with Donut Progress) */}
       <div className="hero-challenge-card">
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem' }}>
-          <div>
-            <span className="badge-pill" style={{ background: '#FFFFFF', color: 'var(--header-blue-1)', marginBottom: '0.5rem', boxShadow: 'var(--shadow-card-master)' }}>
-              <Award size={16} color="var(--header-orange-1)" /> Objectif Santé Quotidien
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.85rem', flexWrap: 'wrap' }}>
+          <div style={{ flex: 1, minWidth: '180px' }}>
+            <span className="badge-pill" style={{ background: '#FFFFFF', color: 'var(--header-blue-1)', marginBottom: '0.45rem', boxShadow: 'var(--shadow-card-master)' }}>
+              <Award size={15} color="var(--header-orange-1)" /> Objectif Santé Quotidien
             </span>
-            <h3 style={{ fontSize: '1.45rem', fontWeight: 700, margin: '0.2rem 0 0.3rem 0', color: 'var(--text-main)' }}>
+            <h3 style={{ fontSize: '1.3rem', fontWeight: 700, margin: '0.2rem 0 0.25rem 0', color: 'var(--text-main)' }}>
               Suivi du Traitement de {patientName}
             </h3>
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.92rem', fontWeight: 600, margin: 0 }}>
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.88rem', fontWeight: 600, margin: 0 }}>
               {takenSlotsCount} sur {totalSlotsCount} créneaux certifiés aujourd'hui.
             </p>
           </div>
 
           {/* Donut Progress Circle (43% / 100%) */}
           <div className="donut-progress-container">
-            <svg width="76" height="76" viewBox="0 0 36 36">
+            <svg width="72" height="72" viewBox="0 0 36 36">
               <path
                 d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
                 fill="none"
@@ -214,43 +217,47 @@ export default function SeniorPapaView({
           ? 'linear-gradient(135deg, #00C853, #2ED573)' 
           : 'linear-gradient(135deg, #0099FF, #00C2FF)',
         color: '#ffffff',
-        borderRadius: '26px',
-        padding: '2rem 1.65rem',
+        borderRadius: '24px',
+        padding: '1.65rem 1.25rem',
         border: 'none',
         boxShadow: '0 16px 36px rgba(0, 153, 255, 0.25)',
         textAlign: 'center',
-        position: 'relative'
+        position: 'relative',
+        width: '100%',
+        boxSizing: 'border-box'
       }}>
 
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1.35rem' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1.25rem', width: '100%' }}>
           
           {/* Header Info */}
-          <div>
+          <div style={{ width: '100%' }}>
             <span style={{
               background: 'rgba(255, 255, 255, 0.22)',
               backdropFilter: 'blur(10px)',
-              padding: '0.4rem 1.2rem',
+              padding: '0.35rem 1rem',
               borderRadius: '9999px',
-              fontSize: '0.92rem',
+              fontSize: '0.88rem',
               fontWeight: 800,
               display: 'inline-block',
-              marginBottom: '0.75rem'
+              marginBottom: '0.65rem',
+              maxWidth: '100%'
             }}>
               📅 {currentDayLabel} — Créneau {currentSlotKey}
             </span>
 
             <h2 style={{
-              fontSize: '2.1rem',
+              fontSize: '1.85rem',
               fontWeight: 800,
               fontFamily: 'var(--font-family-master)',
-              margin: '0.2rem 0 0.45rem 0',
+              margin: '0.2rem 0 0.4rem 0',
               lineHeight: 1.15,
-              letterSpacing: '-0.03em'
+              letterSpacing: '-0.02em',
+              wordBreak: 'break-word'
             }}>
               {isTaken ? `Prise du ${currentSlotKey} Validée ! 🎉` : `Vos médicaments du ${currentSlotKey}`}
             </h2>
 
-            <p style={{ fontSize: '1.05rem', opacity: 0.95, fontWeight: 500, margin: 0 }}>
+            <p style={{ fontSize: '0.98rem', opacity: 0.95, fontWeight: 500, margin: 0 }}>
               {isTaken 
                 ? "Vous avez pris tous vos comprimés. La confirmation a bien été transmise !"
                 : `Vous avez ${currentMeds.length} comprimé(s) à prendre actuellement.`
@@ -263,36 +270,37 @@ export default function SeniorPapaView({
             <div style={{
               background: 'rgba(255, 255, 255, 0.18)',
               backdropFilter: 'blur(10px)',
-              borderRadius: '20px',
-              padding: '1.1rem',
+              borderRadius: '18px',
+              padding: '1rem',
               width: '100%',
               display: 'flex',
               flexDirection: 'column',
               gap: '0.75rem',
-              textAlign: 'left'
+              textAlign: 'left',
+              boxSizing: 'border-box'
             }}>
               {currentMeds.map((med) => (
-                <div key={med.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.75rem' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                <div key={med.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.65rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', minWidth: 0 }}>
                     <div style={{
-                      width: '40px',
-                      height: '40px',
-                      borderRadius: '12px',
+                      width: '36px',
+                      height: '36px',
+                      borderRadius: '10px',
                       background: '#ffffff',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      fontSize: '1.3rem',
+                      fontSize: '1.2rem',
                       flexShrink: 0,
                       boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
                     }}>
                       {med.pillIcon === 'capsule-yellow' ? '💊' : med.pillIcon === 'sachet' ? '✉️' : '⚪'}
                     </div>
-                    <div>
-                      <div style={{ fontWeight: 800, fontSize: '1.1rem' }}>
-                        {med.name} <span style={{ opacity: 0.9, fontSize: '0.95rem' }}>{med.dosage}</span>
+                    <div style={{ minWidth: 0 }}>
+                      <div style={{ fontWeight: 800, fontSize: '1rem', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {med.name} <span style={{ opacity: 0.9, fontSize: '0.88rem' }}>{med.dosage}</span>
                       </div>
-                      <div style={{ fontSize: '0.85rem', opacity: 0.9, fontWeight: 600 }}>
+                      <div style={{ fontSize: '0.82rem', opacity: 0.9, fontWeight: 600 }}>
                         {med.instructions}
                       </div>
                     </div>
@@ -311,22 +319,24 @@ export default function SeniorPapaView({
                 background: 'linear-gradient(135deg, #00C853, #2ED573)',
                 color: '#ffffff',
                 border: '3px solid #ffffff',
-                minHeight: '70px',
-                fontSize: '1.3rem'
+                minHeight: '64px',
+                fontSize: '1.18rem',
+                width: '100%'
               }}
             >
-              <CheckCircle2 size={32} />
+              <CheckCircle2 size={28} />
               <span>J'AI PRIS MES CACHETS 🟢</span>
             </button>
           ) : (
             <div style={{
               background: 'rgba(255, 255, 255, 0.25)',
               backdropFilter: 'blur(10px)',
-              padding: '1.15rem',
-              borderRadius: '20px',
+              padding: '1rem',
+              borderRadius: '18px',
               width: '100%',
-              fontSize: '1.15rem',
-              fontWeight: 800
+              fontSize: '1.05rem',
+              fontWeight: 800,
+              boxSizing: 'border-box'
             }}>
               ✨ Passez une très belle journée {patientName} ! ❤️
             </div>
@@ -339,7 +349,7 @@ export default function SeniorPapaView({
               background: 'transparent',
               color: '#ffffff',
               border: 'none',
-              fontSize: '0.95rem',
+              fontSize: '0.9rem',
               fontWeight: 700,
               display: 'flex',
               alignItems: 'center',
@@ -347,7 +357,7 @@ export default function SeniorPapaView({
               opacity: 0.95
             }}
           >
-            <Volume2 size={20} /> Écouter les consignes vocales
+            <Volume2 size={18} /> Écouter les consignes vocales
           </button>
 
         </div>
