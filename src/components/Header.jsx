@@ -1,5 +1,6 @@
 import React from 'react';
-import { Pill, Heart, Camera, FileText, Volume2, VolumeX, Eye, ZoomIn, ZoomOut, UserCheck, HelpCircle } from 'lucide-react';
+import { Pill, Heart, Volume2, VolumeX, Eye, ZoomIn, ZoomOut, UserCheck, HelpCircle, Wifi, QrCode } from 'lucide-react';
+import { RealtimeCloudSync } from '../services/realtimeCloudSync';
 
 export default function Header({ 
   activeTab, 
@@ -11,8 +12,11 @@ export default function Header({
   textSize,
   setTextSize,
   patientName,
-  onOpenOnboarding
+  onOpenOnboarding,
+  onOpenPairing
 }) {
+
+  const familyCode = RealtimeCloudSync.getFamilyCode();
 
   return (
     <header style={{
@@ -76,36 +80,33 @@ export default function Header({
           </div>
         </div>
 
-        {/* Primary Desktop Navigation */}
-        <nav style={{ display: 'none' }} className="desktop-segmented">
-          <style>{`
-            @media (min-width: 768px) {
-              .desktop-segmented { display: flex !important; }
-            }
-          `}</style>
-          <div className="segmented-control" style={{ padding: '4px' }}>
-            <button
-              onClick={() => setActiveTab('pillbox')}
-              className={`segmented-option ${activeTab === 'pillbox' ? 'active' : ''}`}
-            >
-              🏠 Pilulier Papa
-            </button>
-
-            <button
-              onClick={() => setActiveTab('assistants')}
-              className={`segmented-option ${activeTab === 'assistants' ? 'active' : ''}`}
-            >
-              ✨ Assistants IA
-            </button>
-
-            <button
-              onClick={() => setActiveTab('caregiver')}
-              className={`segmented-option ${activeTab === 'caregiver' ? 'active' : ''}`}
-            >
-              👥 Proche & Médecin
-            </button>
-          </div>
-        </nav>
+        {/* Real-time Cloud Sync Pairing Button */}
+        <button
+          onClick={onOpenPairing}
+          style={{
+            padding: '0.45rem 0.8rem',
+            borderRadius: '12px',
+            background: 'var(--accent-success-light)',
+            color: 'var(--accent-success)',
+            border: '1px solid var(--accent-success)',
+            fontWeight: 800,
+            fontSize: '0.8rem',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.4rem',
+            cursor: 'pointer'
+          }}
+          title="Liaison Directe Cloud Appareil Enfant <-> Parent"
+        >
+          <span style={{
+            width: '8px',
+            height: '8px',
+            borderRadius: '50%',
+            background: 'var(--accent-success)',
+            boxShadow: '0 0 8px var(--accent-success)'
+          }} />
+          <Wifi size={14} /> Direct : {familyCode}
+        </button>
 
         {/* Minimal Accessibility Controls */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>

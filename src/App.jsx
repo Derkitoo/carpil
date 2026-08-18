@@ -8,8 +8,9 @@ import VoiceAssistantAgent from './components/VoiceAssistantAgent';
 import DoctorReport from './components/DoctorReport';
 import CompartmentModal from './components/CompartmentModal';
 import OnboardingModal from './components/OnboardingModal';
+import FamilyPairingModal from './components/FamilyPairingModal';
 
-import { CloudSyncService } from './services/cloudSync';
+import { RealtimeCloudSync } from './services/realtimeCloudSync';
 import { 
   INITIAL_MEDICATIONS, 
   PATIENT_PROFILE, 
@@ -24,6 +25,7 @@ import confetti from 'canvas-confetti';
 export default function App() {
   const [appMode, setAppMode] = useState('papa');
   const [caregiverTab, setCaregiverTab] = useState('dashboard');
+  const [showPairingModal, setShowPairingModal] = useState(false);
 
   // Defensive State Initializers
   const [speechEnabled, setSpeechEnabled] = useState(() => {
@@ -69,9 +71,14 @@ export default function App() {
     return PATIENT_PROFILE;
   });
 
-  const [takenSlots, setTakenSlots] = useState(() => 
-    CloudSyncService.getTakenSlots({ "mar-Matin": true })
-  );
+  const [takenSlots, setTakenSlots] = useState(() => {
+    try {
+      const saved = localStorage.getItem('carepill_taken_slots');
+      return saved ? JSON.parse(saved) : { "mar-Matin": true };
+    } catch {
+      return { "mar-Matin": true };
+    }
+  });
 
   const [activeModalData, setActiveModalData] = useState(null);
   const [toastMessage, setToastMessage] = useState(null);
@@ -115,11 +122,13 @@ export default function App() {
     const key = `${dayKey}-${slotKey}`;
     setTakenSlots(prev => {
       const updated = { ...prev, [key]: true };
-      CloudSyncService.saveTakenSlots(updated);
       return updated;
     });
 
-    showToast(`✅ Case ${slotKey} certifiée et enregistrée !`);
+    // Publish event over WebSockets / Cloud Relay to child phone
+    RealtimeCloudSync.publishSlotValidated(dayKey, slotKey, patientProfile.name);
+
+    showToast(`✅ Case ${slotKey} certifiée et synchronisée en direct !`);
   }
 
   const handleCloseOnboarding = () => {
@@ -147,17 +156,22 @@ export default function App() {
   };
 
   const handleSendNotification = (textMsg) => {
-    CloudSyncService.sendNotice(textMsg);
-    showToast(`Message transmis à ${patientProfile.name} : "${textMsg}"`);
+    RealtimeCloudSync.publishNudgeMessage(textMsg, 'Enfant');
+    showToast(`Message transmis en direct à ${patientProfile.name} : "${textMsg}"`);
     speakText(`Message de votre enfant : ${textMsg}`);
   };
 
-  // Check URL parameters for PWA Manifest Quick-Action Shortcut triggers
+  // Check URL parameters for family pairing link or PWA action
   useEffect(() => {
     try {
       const urlParams = new URLSearchParams(window.location.search);
-      const action = urlParams.get('action');
+      const pairingCode = urlParams.get('familyCode');
+      if (pairingCode && pairingCode.trim().length >= 4) {
+        RealtimeCloudSync.setFamilyCode(pairingCode);
+        showToast(`🔗 Connecté au réseau familial : ${pairingCode.toUpperCase()}`);
+      }
 
+      const action = urlParams.get('action');
       if (action && action.startsWith('validate_')) {
         const slotToValidate = action.replace('validate_', '');
         const dayKey = 'mar';
@@ -176,21 +190,33 @@ export default function App() {
         window.history.replaceState({}, document.title, window.location.pathname);
       }
     } catch (err) {
-      console.warn("Shortcut action handling error:", err);
+      console.warn("URL params handling error:", err);
     }
   }, [patientProfile.name]);
 
+  // Subscribe to Real-time Cross-Device Events
   useEffect(() => {
-    const unsubscribe = CloudSyncService.subscribeToUpdates(
-      (updatedSlots) => {
-        setTakenSlots(updatedSlots);
-        showToast("⚡ Synchronisation pilulier mise à jour en direct !");
-      },
-      (noticeMsg) => {
-        showToast(`Message reçu : "${noticeMsg}"`);
-        speakText(`Message pour ${patientProfile.name} : ${noticeMsg}`);
+    const unsubscribe = RealtimeCloudSync.subscribe((event) => {
+      if (event.type === 'SLOT_VALIDATED') {
+        const key = `${event.dayKey}-${event.slotKey}`;
+        setTakenSlots(prev => ({ ...prev, [key]: true }));
+
+        confetti({
+          particleCount: 80,
+          spread: 60,
+          origin: { y: 0.6 }
+        });
+
+        showToast(`🟢 EN DIRECT : ${event.patientName} a validé son traitement du ${event.slotKey} à ${event.timestamp} !`);
+        speakText(`Notification en direct : ${event.patientName} a pris son traitement du ${event.slotKey}`);
       }
-    );
+
+      if (event.type === 'NUDGE_RECEIVED') {
+        showToast(`💬 Message en Direct de votre proche : "${event.textMsg}"`);
+        speakText(`Message de votre enfant : ${event.textMsg}`);
+      }
+    });
+
     return () => unsubscribe();
   }, [patientProfile.name]);
 
@@ -267,6 +293,7 @@ export default function App() {
             setTextSize={setTextSize}
             patientName={patientProfile.name}
             onOpenOnboarding={() => setShowOnboarding(true)}
+            onOpenPairing={() => setShowPairingModal(true)}
           />
 
           <main style={{ flex: 1, maxWidth: '1060px', width: '100%', margin: '0 auto', padding: '1.5rem 1rem' }}>
@@ -393,6 +420,13 @@ export default function App() {
         patientName={patientProfile.name}
       />
 
+      {/* Real-time Family Pairing Modal */}
+      <FamilyPairingModal
+        isOpen={showPairingModal}
+        onClose={() => setShowPairingModal(false)}
+        onToast={showToast}
+      />
+
       {/* Compartment Sheet Popup */}
       <CompartmentModal
         modalData={activeModalData}
@@ -411,7 +445,7 @@ export default function App() {
         fontWeight: 600,
         background: 'var(--system-card-bg)'
       }}>
-        CarePill AI © 2026 • Designed for Senior Care & Peace of Mind 💙
+        CarePill AI © 2026 • Real-time Cloud Sync Enabled 🛰️
       </footer>
 
     </div>
