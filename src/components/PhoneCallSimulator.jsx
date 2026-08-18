@@ -20,7 +20,7 @@ export default function PhoneCallSimulator({ isOpen, onClose, patientName, onVal
 
       osc1.type = 'sine';
       osc2.type = 'sine';
-      osc1.frequency.setValueAtTime(440, ctx.currentTime); // Standard phone ring frequencies 440Hz + 480Hz
+      osc1.frequency.setValueAtTime(440, ctx.currentTime);
       osc2.frequency.setValueAtTime(480, ctx.currentTime);
 
       gain.gain.setValueAtTime(0.15, ctx.currentTime);
@@ -63,49 +63,89 @@ export default function PhoneCallSimulator({ isOpen, onClose, patientName, onVal
   const handleAnswerCall = () => {
     stopRingtone();
     setCallActive(true);
-    speakText(`Bonjour ${patientName} ! C'est le service vocal de votre fils Thomas. J'espère que vous allez bien ! Avez-vous pensé à prendre vos 3 cachets du matin avec votre verre d'eau ? Appuyez sur le bouton vert pour valider.`);
+    if (speakText) {
+      speakText(`Bonjour ${patientName} ! C'est le service vocal de votre fils Thomas. J'espère que vous allez bien ! Avez-vous pensé à prendre vos cachets du matin avec votre verre d'eau ? Appuyez sur le bouton vert pour valider.`);
+    }
   };
 
   const handleConfirmPillsInCall = () => {
-    onValidateSlot('mar', 'Matin');
+    if (onValidateSlot) onValidateSlot('mar', 'Matin');
     
-    confetti({
-      particleCount: 90,
-      spread: 75,
-      origin: { y: 0.6 }
-    });
+    try {
+      confetti({
+        particleCount: 90,
+        spread: 75,
+        origin: { y: 0.6 }
+      });
+    } catch (e) {
+      console.warn(e);
+    }
 
-    speakText(`Super ${patientName} ! J'ai bien validé votre prise du matin. Passez une excellente journée ! Bisous de toute la famille.`);
+    if (speakText) {
+      speakText(`Super ${patientName} ! J'ai bien validé votre prise du matin. Passez une excellente journée ! Bisous de toute la famille.`);
+    }
+
     setCallActive(false);
     setCallEnded(true);
 
     setTimeout(() => {
       onClose();
       setCallEnded(false);
-    }, 3000);
+    }, 2800);
   };
 
   const handleNativePhoneCall = () => {
-    // Native phone call trigger
     window.location.href = "tel:0612345678";
   };
 
   return (
-    <div className="modal-backdrop">
-      <div className="modal-content animate-slide-up" style={{
+    <div style={{
+      position: 'fixed',
+      top: 0, left: 0, right: 0, bottom: 0,
+      zIndex: 300,
+      background: 'rgba(0, 0, 0, 0.82)',
+      backdropFilter: 'blur(16px)',
+      WebkitBackdropFilter: 'blur(16px)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: '1rem',
+      boxSizing: 'border-box'
+    }} className="animate-fade-in">
+
+      <div className="card" style={{
         background: 'linear-gradient(135deg, #0f172a, #1e293b)',
         color: '#ffffff',
         textAlign: 'center',
-        borderRadius: '32px',
-        padding: '2.25rem 1.5rem',
-        maxWidth: '480px'
+        borderRadius: '28px',
+        padding: '2rem 1.35rem',
+        maxWidth: '440px',
+        width: '100%',
+        boxShadow: 'var(--shadow-card-hover)',
+        position: 'relative',
+        boxSizing: 'border-box',
+        maxHeight: '90dvh',
+        overflowY: 'auto'
       }}>
         
+        {/* Close Button */}
+        <button
+          onClick={() => { stopRingtone(); onClose(); }}
+          style={{
+            position: 'absolute', top: '1rem', right: '1rem',
+            background: 'rgba(255,255,255,0.12)', border: 'none',
+            borderRadius: '50%', width: '36px', height: '36px',
+            color: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center'
+          }}
+        >
+          <X size={18} />
+        </button>
+
         {/* Phone Call Icon Header */}
         <div style={{ marginBottom: '1.25rem' }}>
           <div style={{
-            width: '90px',
-            height: '90px',
+            width: '84px',
+            height: '84px',
             borderRadius: '50%',
             background: callActive ? 'rgba(52, 199, 89, 0.2)' : 'rgba(2, 132, 199, 0.2)',
             color: callActive ? '#34c759' : '#38bdf8',
@@ -115,18 +155,18 @@ export default function PhoneCallSimulator({ isOpen, onClose, patientName, onVal
             marginBottom: '0.75rem',
             animation: 'pulse-gentle 1.5s infinite'
           }}>
-            <Phone size={44} />
+            <Phone size={40} />
           </div>
 
-          <div style={{ fontSize: '0.82rem', textTransform: 'uppercase', color: '#38bdf8', fontWeight: 800, letterSpacing: '0.04em' }}>
+          <div style={{ fontSize: '0.78rem', textTransform: 'uppercase', color: '#38bdf8', fontWeight: 800, letterSpacing: '0.04em' }}>
             📞 APPEL VOCAL DÉCLENCHÉ EN DIRECT
           </div>
 
-          <h2 style={{ fontSize: '1.8rem', fontWeight: 800, fontFamily: 'var(--font-display)', margin: '0.3rem 0' }}>
+          <h2 style={{ fontSize: '1.65rem', fontWeight: 800, fontFamily: 'var(--font-family-master)', margin: '0.3rem 0', color: '#ffffff' }}>
             Appel pour {patientName}
           </h2>
 
-          <p style={{ color: '#94a3b8', fontSize: '0.95rem', fontWeight: 600 }}>
+          <p style={{ color: '#94a3b8', fontSize: '0.9rem', fontWeight: 600 }}>
             {callActive 
               ? "Communication en cours avec l'assistant vocal..." 
               : callEnded 
@@ -137,14 +177,14 @@ export default function PhoneCallSimulator({ isOpen, onClose, patientName, onVal
 
         {/* Call Actions */}
         {!callActive && !callEnded && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', alignItems: 'center', marginTop: '1.25rem' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', alignItems: 'center', marginTop: '1.25rem', width: '100%' }}>
             <div style={{ display: 'flex', gap: '1.5rem', justifyContent: 'center' }}>
               <button
                 onClick={() => { stopRingtone(); onClose(); }}
                 title="Refuser l'appel"
                 style={{
-                  width: '68px',
-                  height: '68px',
+                  width: '64px',
+                  height: '64px',
                   borderRadius: '50%',
                   background: '#ff3b30',
                   color: '#ffffff',
@@ -155,15 +195,15 @@ export default function PhoneCallSimulator({ isOpen, onClose, patientName, onVal
                   boxShadow: '0 6px 20px rgba(255, 59, 48, 0.4)'
                 }}
               >
-                <PhoneOff size={30} />
+                <PhoneOff size={28} />
               </button>
 
               <button
                 onClick={handleAnswerCall}
                 title="Décrocher l'appel vocal"
                 style={{
-                  width: '68px',
-                  height: '68px',
+                  width: '64px',
+                  height: '64px',
                   borderRadius: '50%',
                   background: '#34c759',
                   color: '#ffffff',
@@ -174,47 +214,47 @@ export default function PhoneCallSimulator({ isOpen, onClose, patientName, onVal
                   boxShadow: '0 6px 20px rgba(52, 199, 89, 0.4)'
                 }}
               >
-                <Phone size={30} />
+                <Phone size={28} />
               </button>
             </div>
 
             <button
               onClick={handleNativePhoneCall}
               style={{
-                padding: '0.65rem 1.1rem',
-                borderRadius: '14px',
+                padding: '0.6rem 1rem',
+                borderRadius: '12px',
                 background: 'rgba(255,255,255,0.12)',
                 color: '#ffffff',
                 border: '1px solid rgba(255,255,255,0.2)',
-                fontSize: '0.88rem',
+                fontSize: '0.82rem',
                 fontWeight: 700,
                 display: 'flex',
                 alignItems: 'center',
                 gap: '0.4rem'
               }}
             >
-              <ExternalLink size={16} /> Passer un vrai appel GSM (tel:)
+              <ExternalLink size={15} /> Passer un vrai appel GSM (tel:)
             </button>
           </div>
         )}
 
         {callActive && (
-          <div style={{ marginTop: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            <div style={{ background: 'rgba(255,255,255,0.08)', padding: '1rem', borderRadius: '18px', fontSize: '0.95rem', fontWeight: 600, color: '#f1f5f9' }}>
-              🗣️ "Avez-vous bien pris vos 3 cachets du matin avec votre grand verre d'eau ?"
+          <div style={{ marginTop: '1.25rem', display: 'flex', flexDirection: 'column', gap: '0.85rem', width: '100%' }}>
+            <div style={{ background: 'rgba(255,255,255,0.08)', padding: '0.9rem', borderRadius: '16px', fontSize: '0.9rem', fontWeight: 600, color: '#f1f5f9' }}>
+              🗣️ "Avez-vous bien pris vos cachets du matin avec votre grand verre d'eau ?"
             </div>
 
             <button
               onClick={handleConfirmPillsInCall}
               className="btn-giant btn-success"
-              style={{ padding: '1rem', fontSize: '1.2rem' }}
+              style={{ padding: '0.9rem', fontSize: '1.1rem', width: '100%' }}
             >
-              <CheckCircle2 size={26} /> OUI, J'AI PRIS MES CACHETS 🟢
+              <CheckCircle2 size={24} /> OUI, J'AI PRIS MES CACHETS 🟢
             </button>
 
             <button
               onClick={() => { stopRingtone(); setCallActive(false); onClose(); }}
-              style={{ background: 'transparent', color: '#94a3b8', border: 'none', fontWeight: 700, fontSize: '0.9rem' }}
+              style={{ background: 'transparent', color: '#94a3b8', border: 'none', fontWeight: 700, fontSize: '0.85rem' }}
             >
               Raccrocher
             </button>
@@ -222,7 +262,7 @@ export default function PhoneCallSimulator({ isOpen, onClose, patientName, onVal
         )}
 
         {callEnded && (
-          <div style={{ marginTop: '1rem', color: '#34c759', fontWeight: 800, fontSize: '1.1rem' }}>
+          <div style={{ marginTop: '1rem', color: '#34c759', fontWeight: 800, fontSize: '1.05rem' }}>
             ✅ Traitement validé par appel vocal !
           </div>
         )}
