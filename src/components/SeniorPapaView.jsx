@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { CheckCircle2, Volume2, ShieldCheck, Heart, Sparkles, UserCheck, PhoneCall, Wifi } from 'lucide-react';
+import { CheckCircle2, Volume2, ShieldCheck, Heart, Sparkles, UserCheck, PhoneCall, Wifi, Award, Clock } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import HomeWidgetSimulator from './HomeWidgetSimulator';
 import SmartPillboxNFC from './SmartPillboxNFC';
@@ -22,13 +22,18 @@ export default function SeniorPapaView({
   else if (currentHour >= 17 && currentHour < 21) currentSlotKey = 'Soir';
   else if (currentHour >= 21 || currentHour < 6) currentSlotKey = 'Nuit';
 
-  const currentDayKey = 'mar'; // Mardi
+  const currentDayKey = 'mar';
   const currentDayLabel = 'Mardi 17 Août';
   const safeTakenSlots = takenSlots || {};
   const isTaken = Boolean(safeTakenSlots[`${currentDayKey}-${currentSlotKey}`]);
 
   const safeMedications = medications || [];
   const currentMeds = safeMedications.filter(med => med && med.timeSlots && med.timeSlots.includes(currentSlotKey));
+
+  // Compute daily adherence percentage for the Donut Progress
+  const totalSlotsCount = 4;
+  const takenSlotsCount = ['Matin', 'Midi', 'Soir', 'Nuit'].filter(slot => safeTakenSlots[`${currentDayKey}-${slot}`]).length;
+  const adherencePercent = Math.round((takenSlotsCount / totalSlotsCount) * 100);
 
   const handleValidateCurrent = () => {
     if (onValidateSlot) {
@@ -59,86 +64,134 @@ export default function SeniorPapaView({
     speakText(text);
   };
 
-  // Get patient initials respectfully for Apple-style avatar badge
   const patientInitials = patientName
     ? patientName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
     : 'JM';
 
   return (
-    <div style={{ maxWidth: '600px', margin: '0 auto', minHeight: '80vh', display: 'flex', flexDirection: 'column', justifyContent: 'center' }} className="animate-slide-up">
+    <div style={{ maxWidth: '620px', margin: '0 auto', minHeight: '80vh', display: 'flex', flexDirection: 'column', gap: '1.25rem' }} className="animate-slide-up">
       
-      {/* Respectful Apple-style Senior Profile Top Bar */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.85rem' }}>
-        
-        {/* Respectful Avatar Badge (Replaces displaced emoji) */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
-          <div style={{
-            width: '38px',
-            height: '38px',
-            borderRadius: '50%',
-            background: 'linear-gradient(135deg, #0071e3, #38bdf8)',
-            color: '#ffffff',
-            fontWeight: 800,
-            fontSize: '0.9rem',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            boxShadow: '0 2px 8px rgba(0, 113, 227, 0.3)'
-          }}>
-            {patientInitials}
-          </div>
+      {/* 1. Curved Top Header Bar (Orange Chaleureux #FFA629 / #FF9F1C) */}
+      <div className="header-curved-orange" style={{ padding: '1.25rem 1.35rem' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           
-          <div>
-            <div style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: 'var(--accent-primary)', fontWeight: 800, letterSpacing: '0.04em' }}>
-              PATIENT SUIVI
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            <div style={{
+              width: '42px',
+              height: '42px',
+              borderRadius: '50%',
+              background: '#FFFFFF',
+              color: 'var(--header-orange-1)',
+              fontWeight: 800,
+              fontSize: '1rem',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)'
+            }}>
+              {patientInitials}
             </div>
-            <div style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--system-text)' }}>
-              Espace Personalisé de {patientName}
+            
+            <div>
+              <div style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: 'rgba(255, 255, 255, 0.95)', fontWeight: 800, letterSpacing: '0.04em' }}>
+                PATIENT SUIVI
+              </div>
+              <div style={{ fontSize: '1.05rem', fontWeight: 800, color: '#FFFFFF' }}>
+                Espace Personnalisé de {patientName}
+              </div>
             </div>
           </div>
-        </div>
 
-        <div style={{ display: 'flex', gap: '0.45rem' }}>
-          <button
-            onClick={() => setShowCallModal(true)}
-            style={{
-              padding: '0.45rem 0.75rem',
-              borderRadius: '12px',
-              background: 'var(--accent-warning-light)',
-              color: 'var(--accent-warning)',
-              border: '1px solid var(--accent-warning)',
-              fontSize: '0.8rem',
-              fontWeight: 800,
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.35rem'
-            }}
-          >
-            <PhoneCall size={14} /> Rappel Vocal
-          </button>
+          <div style={{ display: 'flex', gap: '0.45rem' }}>
+            <button
+              onClick={() => setShowCallModal(true)}
+              style={{
+                padding: '0.45rem 0.75rem',
+                borderRadius: '9999px',
+                background: 'rgba(255, 255, 255, 0.22)',
+                backdropFilter: 'blur(10px)',
+                color: '#FFFFFF',
+                border: '1px solid rgba(255, 255, 255, 0.35)',
+                fontSize: '0.8rem',
+                fontWeight: 800,
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.35rem'
+              }}
+            >
+              <PhoneCall size={14} /> Rappel Vocal
+            </button>
 
-          <button
-            onClick={onSwitchToCaregiver}
-            style={{
-              padding: '0.45rem 0.85rem',
-              borderRadius: '12px',
-              background: 'var(--system-card-bg)',
-              border: '1px solid var(--system-card-border)',
-              color: 'var(--system-text-secondary)',
-              fontSize: '0.8rem',
-              fontWeight: 700,
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.35rem',
-              boxShadow: 'var(--shadow-sm)'
-            }}
-          >
-            <Heart size={14} color="var(--accent-primary)" /> Espace Enfant
-          </button>
+            <button
+              onClick={onSwitchToCaregiver}
+              style={{
+                padding: '0.45rem 0.85rem',
+                borderRadius: '9999px',
+                background: '#FFFFFF',
+                color: 'var(--header-orange-1)',
+                fontSize: '0.8rem',
+                fontWeight: 800,
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.35rem',
+                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.12)'
+              }}
+            >
+              <Heart size={14} color="var(--accent-reward)" /> Espace Enfant
+            </button>
+          </div>
+
         </div>
       </div>
 
-      {/* 1-TAP HOME SCREEN WIDGET SIMULATOR BANNER */}
+      {/* 2. Hero Challenge Card (Mint / Ice Container #EBF5FF with Donut Progress) */}
+      <div className="hero-challenge-card">
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem' }}>
+          <div>
+            <span className="badge-pill" style={{ background: '#FFFFFF', color: 'var(--header-blue-1)', marginBottom: '0.5rem', boxShadow: 'var(--shadow-card-master)' }}>
+              <Award size={16} color="var(--header-orange-1)" /> Objectif Santé Quotidien
+            </span>
+            <h3 style={{ fontSize: '1.45rem', fontWeight: 700, margin: '0.2rem 0 0.3rem 0', color: 'var(--text-main)' }}>
+              Suivi du Traitement de {patientName}
+            </h3>
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.92rem', fontWeight: 600, margin: 0 }}>
+              {takenSlotsCount} sur {totalSlotsCount} créneaux certifiés aujourd'hui.
+            </p>
+          </div>
+
+          {/* Donut Progress Circle (43% / 100%) */}
+          <div className="donut-progress-container">
+            <svg width="76" height="76" viewBox="0 0 36 36">
+              <path
+                d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                fill="none"
+                stroke="rgba(0, 153, 255, 0.15)"
+                strokeWidth="3.8"
+              />
+              <path
+                d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                fill="none"
+                stroke="url(#blueGreenGrad)"
+                strokeWidth="3.8"
+                strokeDasharray={`${adherencePercent}, 100`}
+                strokeLinecap="round"
+              />
+              <defs>
+                <linearGradient id="blueGreenGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor="#0099FF" />
+                  <stop offset="100%" stopColor="#00C853" />
+                </linearGradient>
+              </defs>
+            </svg>
+            <div className="donut-progress-text">
+              {adherencePercent}%
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      {/* 3. 1-Tap Home Screen Widget Simulator Banner */}
       <HomeWidgetSimulator
         takenSlots={safeTakenSlots}
         onValidateSlot={onValidateSlot}
@@ -147,7 +200,7 @@ export default function SeniorPapaView({
         patientName={patientName}
       />
 
-      {/* TOUCHLESS NFC PILLBOX SCANNER BANNER (WITH WRITE & READ SUPPORT) */}
+      {/* 4. Touchless NFC Pillbox Scanner Banner */}
       <SmartPillboxNFC
         onValidateSlot={onValidateSlot}
         speakText={speakText}
@@ -155,19 +208,18 @@ export default function SeniorPapaView({
         timeSlots={timeSlots}
       />
 
-      {/* THE ONE SINGLE HERO CARD FOR PAPA */}
+      {/* 5. THE HERO VALIDATION CARD (WARM GREEN GRADIENT & MODERN SHADOW) */}
       <div className="card" style={{
         background: isTaken 
-          ? 'linear-gradient(135deg, #059669, #10b981)' 
-          : 'linear-gradient(135deg, #0071e3, #005bb5)',
+          ? 'linear-gradient(135deg, #00C853, #2ED573)' 
+          : 'linear-gradient(135deg, #0099FF, #00C2FF)',
         color: '#ffffff',
-        borderRadius: '36px',
+        borderRadius: '26px',
         padding: '2rem 1.65rem',
         border: 'none',
-        boxShadow: 'var(--shadow-lg)',
+        boxShadow: '0 16px 36px rgba(0, 153, 255, 0.25)',
         textAlign: 'center',
-        position: 'relative',
-        overflow: 'hidden'
+        position: 'relative'
       }}>
 
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1.35rem' }}>
@@ -175,10 +227,10 @@ export default function SeniorPapaView({
           {/* Header Info */}
           <div>
             <span style={{
-              background: 'rgba(255, 255, 255, 0.2)',
+              background: 'rgba(255, 255, 255, 0.22)',
               backdropFilter: 'blur(10px)',
-              padding: '0.35rem 1.1rem',
-              borderRadius: '999px',
+              padding: '0.4rem 1.2rem',
+              borderRadius: '9999px',
               fontSize: '0.92rem',
               fontWeight: 800,
               display: 'inline-block',
@@ -190,7 +242,7 @@ export default function SeniorPapaView({
             <h2 style={{
               fontSize: '2.1rem',
               fontWeight: 800,
-              fontFamily: 'var(--font-display)',
+              fontFamily: 'var(--font-family-master)',
               margin: '0.2rem 0 0.45rem 0',
               lineHeight: 1.15,
               letterSpacing: '-0.03em'
@@ -198,9 +250,9 @@ export default function SeniorPapaView({
               {isTaken ? `Prise du ${currentSlotKey} Validée ! 🎉` : `Vos médicaments du ${currentSlotKey}`}
             </h2>
 
-            <p style={{ fontSize: '1.1rem', opacity: 0.95, fontWeight: 500, margin: 0 }}>
+            <p style={{ fontSize: '1.05rem', opacity: 0.95, fontWeight: 500, margin: 0 }}>
               {isTaken 
-                ? "Vous avez pris tous vos comprimés. La confirmation a bien été envoyée !"
+                ? "Vous avez pris tous vos comprimés. La confirmation a bien été transmise !"
                 : `Vous avez ${currentMeds.length} comprimé(s) à prendre actuellement.`
               }
             </p>
@@ -209,9 +261,9 @@ export default function SeniorPapaView({
           {/* List of Medications in Current Slot */}
           {!isTaken && (
             <div style={{
-              background: 'rgba(255, 255, 255, 0.15)',
+              background: 'rgba(255, 255, 255, 0.18)',
               backdropFilter: 'blur(10px)',
-              borderRadius: '24px',
+              borderRadius: '20px',
               padding: '1.1rem',
               width: '100%',
               display: 'flex',
@@ -231,7 +283,8 @@ export default function SeniorPapaView({
                       alignItems: 'center',
                       justifyContent: 'center',
                       fontSize: '1.3rem',
-                      flexShrink: 0
+                      flexShrink: 0,
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
                     }}>
                       {med.pillIcon === 'capsule-yellow' ? '💊' : med.pillIcon === 'sachet' ? '✉️' : '⚪'}
                     </div>
@@ -255,11 +308,11 @@ export default function SeniorPapaView({
               onClick={handleValidateCurrent}
               className="btn-giant animate-pulse-gentle"
               style={{
-                background: '#34c759',
+                background: 'linear-gradient(135deg, #00C853, #2ED573)',
                 color: '#ffffff',
                 border: '3px solid #ffffff',
                 minHeight: '70px',
-                fontSize: '1.35rem'
+                fontSize: '1.3rem'
               }}
             >
               <CheckCircle2 size={32} />
@@ -270,7 +323,7 @@ export default function SeniorPapaView({
               background: 'rgba(255, 255, 255, 0.25)',
               backdropFilter: 'blur(10px)',
               padding: '1.15rem',
-              borderRadius: '24px',
+              borderRadius: '20px',
               width: '100%',
               fontSize: '1.15rem',
               fontWeight: 800

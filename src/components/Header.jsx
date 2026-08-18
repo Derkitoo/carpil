@@ -19,11 +19,8 @@ export default function Header({
   const familyCode = RealtimeCloudSync.getFamilyCode();
 
   return (
-    <header style={{
-      background: 'var(--glass-bg)',
-      backdropFilter: 'var(--glass-blur)',
-      WebkitBackdropFilter: 'var(--glass-blur)',
-      borderBottom: '1px solid var(--system-card-border)',
+    <header className="header-curved-blue" style={{
+      padding: '0.85rem 1rem 1.35rem 1rem',
       position: 'sticky',
       top: 0,
       zIndex: 50
@@ -31,7 +28,6 @@ export default function Header({
       <div style={{
         maxWidth: '1060px',
         margin: '0 auto',
-        padding: '0.75rem 1rem',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
@@ -41,41 +37,41 @@ export default function Header({
         {/* Brand & Patient Identity */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
           <div style={{
-            background: 'linear-gradient(135deg, #0071e3, #34c759)',
-            color: '#ffffff',
-            width: '38px',
-            height: '38px',
-            borderRadius: '12px',
+            background: '#FFFFFF',
+            color: 'var(--header-blue-1)',
+            width: '42px',
+            height: '42px',
+            borderRadius: '14px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            boxShadow: '0 4px 14px rgba(0, 113, 227, 0.25)',
+            boxShadow: '0 4px 14px rgba(0, 0, 0, 0.15)',
             flexShrink: 0
           }}>
-            <Pill size={22} />
+            <Pill size={24} />
           </div>
           <div>
             <h1 style={{
-              fontSize: '1.2rem',
+              fontSize: '1.25rem',
               fontWeight: 800,
-              color: 'var(--system-text)',
-              fontFamily: 'var(--font-display)',
+              color: '#FFFFFF',
+              fontFamily: 'var(--font-family-master)',
               margin: 0,
               lineHeight: 1.1,
               letterSpacing: '-0.025em'
             }}>
-              CarePill <span style={{ color: 'var(--accent-primary)' }}>AI</span>
+              CarePill <span style={{ color: '#FFD60A' }}>AI</span>
             </h1>
             <p style={{
-              fontSize: '0.76rem',
-              color: 'var(--system-text-secondary)',
+              fontSize: '0.78rem',
+              color: 'rgba(255, 255, 255, 0.9)',
               fontWeight: 600,
               display: 'flex',
               alignItems: 'center',
               gap: '0.25rem',
-              marginTop: '0.1rem'
+              marginTop: '0.15rem'
             }}>
-              <UserCheck size={12} color="var(--accent-success)" /> {patientName}
+              <UserCheck size={13} color="#2ED573" /> {patientName}
             </p>
           </div>
         </div>
@@ -84,11 +80,12 @@ export default function Header({
         <button
           onClick={onOpenPairing}
           style={{
-            padding: '0.45rem 0.8rem',
-            borderRadius: '12px',
-            background: 'var(--accent-success-light)',
-            color: 'var(--accent-success)',
-            border: '1px solid var(--accent-success)',
+            padding: '0.45rem 0.85rem',
+            borderRadius: '9999px',
+            background: 'rgba(255, 255, 255, 0.2)',
+            backdropFilter: 'blur(10px)',
+            color: '#FFFFFF',
+            border: '1px solid rgba(255, 255, 255, 0.35)',
             fontWeight: 800,
             fontSize: '0.8rem',
             display: 'flex',
@@ -102,8 +99,8 @@ export default function Header({
             width: '8px',
             height: '8px',
             borderRadius: '50%',
-            background: 'var(--accent-success)',
-            boxShadow: '0 0 8px var(--accent-success)'
+            background: '#2ED573',
+            boxShadow: '0 0 8px #2ED573'
           }} />
           <Wifi size={14} /> Direct : {familyCode}
         </button>
@@ -115,10 +112,11 @@ export default function Header({
             title="Guide & Tutoriel"
             style={{
               padding: '0.45rem 0.65rem',
-              borderRadius: '11px',
-              border: '1px solid var(--system-card-border)',
-              background: 'var(--system-card-bg)',
-              color: 'var(--accent-primary)',
+              borderRadius: '12px',
+              border: '1px solid rgba(255, 255, 255, 0.3)',
+              background: 'rgba(255, 255, 255, 0.18)',
+              backdropFilter: 'blur(8px)',
+              color: '#FFFFFF',
               fontSize: '0.8rem',
               fontWeight: 800,
               display: 'flex',
@@ -134,10 +132,10 @@ export default function Header({
             title="Lecture Vocale"
             style={{
               padding: '0.45rem 0.65rem',
-              borderRadius: '11px',
-              border: '1px solid var(--system-card-border)',
-              background: speechEnabled ? 'var(--accent-success-light)' : 'var(--system-card-bg)',
-              color: speechEnabled ? 'var(--accent-success)' : 'var(--system-text-secondary)',
+              borderRadius: '12px',
+              border: '1px solid rgba(255, 255, 255, 0.3)',
+              background: speechEnabled ? '#2ED573' : 'rgba(255, 255, 255, 0.18)',
+              color: '#FFFFFF',
               fontSize: '0.8rem',
               fontWeight: 700,
               display: 'flex',
@@ -153,10 +151,10 @@ export default function Header({
             title="Mode Haut Contraste"
             style={{
               padding: '0.45rem 0.65rem',
-              borderRadius: '11px',
-              border: '1px solid var(--system-card-border)',
-              background: highContrast ? '#ffd60a' : 'var(--system-card-bg)',
-              color: highContrast ? '#000000' : 'var(--system-text-secondary)',
+              borderRadius: '12px',
+              border: '1px solid rgba(255, 255, 255, 0.3)',
+              background: highContrast ? '#FFD60A' : 'rgba(255, 255, 255, 0.18)',
+              color: highContrast ? '#000000' : '#FFFFFF',
               fontSize: '0.8rem',
               fontWeight: 700,
               display: 'flex',
@@ -169,22 +167,22 @@ export default function Header({
           <div style={{
             display: 'flex',
             alignItems: 'center',
-            background: 'rgba(118, 118, 128, 0.12)',
-            borderRadius: '11px',
+            background: 'rgba(255, 255, 255, 0.2)',
+            borderRadius: '12px',
             padding: '0.15rem'
           }}>
             <button
               onClick={() => setTextSize(Math.max(0.85, textSize - 0.15))}
-              style={{ padding: '0.3rem 0.45rem', background: 'transparent', color: 'var(--system-text)' }}
+              style={{ padding: '0.3rem 0.45rem', background: 'transparent', color: '#FFFFFF' }}
             >
               <ZoomOut size={14} />
             </button>
-            <span style={{ fontSize: '0.75rem', fontWeight: 800, padding: '0 0.15rem' }}>
+            <span style={{ fontSize: '0.75rem', fontWeight: 800, padding: '0 0.15rem', color: '#FFFFFF' }}>
               {Math.round(textSize * 100)}%
             </span>
             <button
               onClick={() => setTextSize(Math.min(1.3, textSize + 0.15))}
-              style={{ padding: '0.3rem 0.45rem', background: 'transparent', color: 'var(--system-text)' }}
+              style={{ padding: '0.3rem 0.45rem', background: 'transparent', color: '#FFFFFF' }}
             >
               <ZoomIn size={14} />
             </button>
