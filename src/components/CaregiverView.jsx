@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Users, Activity, Bell, Calendar, ShieldCheck, Heart, AlertTriangle, 
-  CheckCircle2, Plus, Edit3, MessageSquare, PhoneCall, QrCode, Sparkles, TrendingUp, Save, Send, Volume2, CheckCheck, Eye, Trash2 
+  CheckCircle2, Plus, Edit3, MessageSquare, PhoneCall, QrCode, Sparkles, TrendingUp, Save, Send, Volume2, CheckCheck, Eye, Trash2, Check 
 } from 'lucide-react';
 import { PredictiveRiskService } from '../services/predictiveRiskService';
 import { RealtimeCloudSync } from '../services/realtimeCloudSync';
@@ -58,13 +58,24 @@ export default function CaregiverView({
   useEffect(() => {
     const unsubscribe = RealtimeCloudSync.subscribe((event) => {
       if (event.type === 'NUDGE_READ_RECEIPT') {
+        const readTs = event.timestamp || new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+
         setSentAlerts(prev => {
+          let updatedAny = false;
           const updated = prev.map(item => {
-            if (item.text === event.textMsg || (!item.readTime && item.id === prev[0]?.id)) {
-              return { ...item, readTime: event.timestamp };
+            // Match exact text or fallback to the most recent unread alert
+            const isMatch = !item.readTime && (
+              !updatedAny || 
+              (item.text && event.textMsg && item.text.trim().toLowerCase() === event.textMsg.trim().toLowerCase())
+            );
+
+            if (isMatch) {
+              updatedAny = true;
+              return { ...item, readTime: readTs };
             }
             return item;
           });
+
           try {
             localStorage.setItem('carepill_alerts_history', JSON.stringify(updated));
           } catch (e) {}
@@ -136,6 +147,26 @@ export default function CaregiverView({
     try {
       localStorage.removeItem('carepill_alerts_history');
     } catch (e) {}
+  };
+
+  const handleSimulateReadReceipt = () => {
+    const currentTs = new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+    RealtimeCloudSync.publishNudgeReadReceipt("test", safePatientName);
+
+    setSentAlerts(prev => {
+      let marked = false;
+      const updated = prev.map(item => {
+        if (!item.readTime && !marked) {
+          marked = true;
+          return { ...item, readTime: currentTs };
+        }
+        return item;
+      });
+      try {
+        localStorage.setItem('carepill_alerts_history', JSON.stringify(updated));
+      } catch (e) {}
+      return updated;
+    });
   };
 
   return (
@@ -327,10 +358,10 @@ export default function CaregiverView({
               <MessageSquare size={22} />
             </div>
             <h4 style={{ fontSize: '1.05rem', fontWeight: 600, color: 'var(--text-main)' }}>
-              Transmission d'Alerte Vocale & Historique des Messages (Sauvegardé 💾)
+              Transmission d'Alerte Vocale & Accusé de Lecture En Direct (Vu/Lu)
             </h4>
             <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', fontWeight: 500, marginTop: '0.2rem' }}>
-              Tous les messages envoyés sont **sauvegardés dans l'historique**. Dès que {safePatientName} ouvre ou écoute le message sur son téléphone, un **accusé de lecture (Vu/Lu)** s'affiche ici en direct !
+              Dès que {safePatientName} ouvre ou écoute le message sur son téléphone, l'**accusé de lecture (Vu/Lu)** passe instantanément au vert ci-dessous !
             </p>
           </div>
 
@@ -387,18 +418,28 @@ export default function CaregiverView({
 
           {/* Live Read Receipt History Log (Sauvegardé & Accusés de lecture en direct) */}
           <div style={{ marginTop: '0.85rem', background: 'var(--canvas-bg)', padding: '0.85rem', borderRadius: '16px', border: '1px solid var(--system-card-border)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.45rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.45rem', flexWrap: 'wrap', gap: '0.4rem' }}>
               <div style={{ fontSize: '0.82rem', fontWeight: 800, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
                 <Eye size={15} color="var(--theme-pink)" /> Historique des Messages Envoyés & Accusés de Lecture ({sentAlerts.length})
               </div>
-              {sentAlerts.length > 0 && (
+              
+              <div style={{ display: 'flex', gap: '0.5rem' }}>
                 <button
-                  onClick={handleClearAlertsHistory}
-                  style={{ background: 'transparent', color: 'var(--text-secondary)', border: 'none', fontSize: '0.75rem', fontWeight: 700, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.2rem' }}
+                  onClick={handleSimulateReadReceipt}
+                  style={{ background: 'rgba(0, 200, 83, 0.12)', color: '#00C853', border: 'none', padding: '0.2rem 0.6rem', borderRadius: '8px', fontSize: '0.75rem', fontWeight: 800, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}
                 >
-                  <Trash2 size={13} /> Vider l'historique
+                  <CheckCheck size={14} /> Simuler Accusé (Test)
                 </button>
-              )}
+
+                {sentAlerts.length > 0 && (
+                  <button
+                    onClick={handleClearAlertsHistory}
+                    style={{ background: 'transparent', color: 'var(--text-secondary)', border: 'none', fontSize: '0.75rem', fontWeight: 700, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.2rem' }}
+                  >
+                    <Trash2 size={13} /> Vider l'historique
+                  </button>
+                )}
+              </div>
             </div>
 
             {sentAlerts.length === 0 ? (
@@ -420,7 +461,7 @@ export default function CaregiverView({
                         </span>
                       ) : (
                         <span style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '0.3rem', background: 'var(--canvas-bg)', padding: '0.25rem 0.65rem', borderRadius: '9999px' }}>
-                          <span>Envoyé {alert.time}</span> <span style={{ opacity: 0.7 }}>(En attente...)</span>
+                          <span>Envoyé {alert.time}</span> <span style={{ color: 'var(--theme-yellow)', fontWeight: 800 }}>(⏳ En attente...)</span>
                         </span>
                       )}
                     </div>
