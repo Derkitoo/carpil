@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Users, Activity, Bell, Calendar, ShieldCheck, Heart, AlertTriangle, 
-  CheckCircle2, Plus, Edit3, MessageSquare, PhoneCall, QrCode, Sparkles, TrendingUp, Save, Send, Volume2, CheckCheck, Eye 
+  CheckCircle2, Plus, Edit3, MessageSquare, PhoneCall, QrCode, Sparkles, TrendingUp, Save, Send, Volume2, CheckCheck, Eye, Trash2 
 } from 'lucide-react';
 import { PredictiveRiskService } from '../services/predictiveRiskService';
 import { RealtimeCloudSync } from '../services/realtimeCloudSync';
@@ -26,20 +26,50 @@ export default function CaregiverView({
 
   const [symptomInput, setSymptomInput] = useState({ text: '', severity: 'faible' });
   const [noticeMessageInput, setNoticeMessageInput] = useState('');
-  const [sentAlerts, setSentAlerts] = useState([
-    { id: 1, text: "N'oublie pas de prendre tes cachets avec de l'eau ❤️", time: "Aujourd'hui 08:15", readTime: "08:16" }
-  ]);
+  
+  // Persistent Alerts History loaded directly from localStorage
+  const [sentAlerts, setSentAlerts] = useState(() => {
+    try {
+      const saved = localStorage.getItem('carepill_alerts_history');
+      if (saved && saved !== 'undefined' && saved !== 'null') {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed;
+        }
+      }
+    } catch (e) {
+      console.warn(e);
+    }
+    return [
+      { id: 1, text: "N'oublie pas de prendre tes cachets avec de l'eau ❤️", time: "08:15", readTime: "08:16" }
+    ];
+  });
+
+  // Auto-persist sentAlerts to localStorage on any modification
+  useEffect(() => {
+    try {
+      localStorage.setItem('carepill_alerts_history', JSON.stringify(sentAlerts));
+    } catch (e) {
+      console.warn(e);
+    }
+  }, [sentAlerts]);
 
   // Listen for live read receipts from patient device
   useEffect(() => {
     const unsubscribe = RealtimeCloudSync.subscribe((event) => {
       if (event.type === 'NUDGE_READ_RECEIPT') {
-        setSentAlerts(prev => prev.map(item => {
-          if (item.text === event.textMsg || !item.readTime) {
-            return { ...item, readTime: event.timestamp };
-          }
-          return item;
-        }));
+        setSentAlerts(prev => {
+          const updated = prev.map(item => {
+            if (item.text === event.textMsg || (!item.readTime && item.id === prev[0]?.id)) {
+              return { ...item, readTime: event.timestamp };
+            }
+            return item;
+          });
+          try {
+            localStorage.setItem('carepill_alerts_history', JSON.stringify(updated));
+          } catch (e) {}
+          return updated;
+        });
       }
     });
     return () => unsubscribe();
@@ -77,21 +107,35 @@ export default function CaregiverView({
     const msg = customMsg || noticeMessageInput;
     if (!msg || !msg.trim()) return;
 
+    const trimmed = msg.trim();
+
     if (onSendNotification) {
-      onSendNotification(msg.trim());
+      onSendNotification(trimmed);
     }
 
-    setSentAlerts(prev => [
-      { 
-        id: Date.now(), 
-        text: msg.trim(), 
-        time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
-        readTime: null 
-      },
-      ...prev
-    ]);
+    const newAlert = {
+      id: Date.now(),
+      text: trimmed,
+      time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
+      readTime: null
+    };
+
+    setSentAlerts(prev => {
+      const updated = [newAlert, ...prev];
+      try {
+        localStorage.setItem('carepill_alerts_history', JSON.stringify(updated));
+      } catch (err) {}
+      return updated;
+    });
 
     if (!customMsg) setNoticeMessageInput('');
+  };
+
+  const handleClearAlertsHistory = () => {
+    setSentAlerts([]);
+    try {
+      localStorage.removeItem('carepill_alerts_history');
+    } catch (e) {}
   };
 
   return (
@@ -276,17 +320,17 @@ export default function CaregiverView({
           </div>
         </div>
 
-        {/* Category Card 3: TRANSMISSION D'ALERTE VOCALE AVEC CONFIRMATION DE LECTURE EN DIRECT */}
+        {/* Category Card 3: TRANSMISSION D'ALERTE VOCALE AVEC PERSISTANCE & CONFIRMATION DE LECTURE EN DIRECT */}
         <div className="category-card" style={{ gridColumn: '1 / -1' }}>
           <div>
             <div className="icon-pod icon-pod-pink">
               <MessageSquare size={22} />
             </div>
             <h4 style={{ fontSize: '1.05rem', fontWeight: 600, color: 'var(--text-main)' }}>
-              Transmission d'Alerte Vocale & Confirmation de Lecture (Vu/Lu)
+              Transmission d'Alerte Vocale & Historique des Messages (Sauvegardé 💾)
             </h4>
             <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', fontWeight: 500, marginTop: '0.2rem' }}>
-              Dès que {safePatientName} interagit avec le message sur son téléphone, un **accusé de lecture (Vu/Lu)** s'affiche ici en direct !
+              Tous les messages envoyés sont **sauvegardés dans l'historique**. Dès que {safePatientName} ouvre ou écoute le message sur son téléphone, un **accusé de lecture (Vu/Lu)** s'affiche ici en direct !
             </p>
           </div>
 
@@ -341,35 +385,50 @@ export default function CaregiverView({
             </div>
           </form>
 
-          {/* Live Read Receipt History Log (Accusés de lecture en direct) */}
-          {sentAlerts.length > 0 && (
-            <div style={{ marginTop: '0.85rem', background: 'var(--canvas-bg)', padding: '0.75rem', borderRadius: '14px', border: '1px solid var(--system-card-border)' }}>
-              <div style={{ fontSize: '0.78rem', fontWeight: 800, color: 'var(--text-secondary)', marginBottom: '0.35rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                <Eye size={14} /> Accusés de Lecture en Temps Réel :
+          {/* Live Read Receipt History Log (Sauvegardé & Accusés de lecture en direct) */}
+          <div style={{ marginTop: '0.85rem', background: 'var(--canvas-bg)', padding: '0.85rem', borderRadius: '16px', border: '1px solid var(--system-card-border)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.45rem' }}>
+              <div style={{ fontSize: '0.82rem', fontWeight: 800, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                <Eye size={15} color="var(--theme-pink)" /> Historique des Messages Envoyés & Accusés de Lecture ({sentAlerts.length})
               </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
-                {sentAlerts.slice(0, 4).map(alert => (
-                  <div key={alert.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.82rem', background: 'var(--card-surface)', padding: '0.45rem 0.75rem', borderRadius: '10px', flexWrap: 'wrap', gap: '0.4rem' }}>
+              {sentAlerts.length > 0 && (
+                <button
+                  onClick={handleClearAlertsHistory}
+                  style={{ background: 'transparent', color: 'var(--text-secondary)', border: 'none', fontSize: '0.75rem', fontWeight: 700, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.2rem' }}
+                >
+                  <Trash2 size={13} /> Vider l'historique
+                </button>
+              )}
+            </div>
+
+            {sentAlerts.length === 0 ? (
+              <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', fontWeight: 600, padding: '0.5rem 0' }}>
+                Aucun message dans l'historique. Tapez une alerte ci-dessus pour la sauvegarder et la transmettre.
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
+                {sentAlerts.map(alert => (
+                  <div key={alert.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.84rem', background: 'var(--card-surface)', padding: '0.55rem 0.85rem', borderRadius: '12px', flexWrap: 'wrap', gap: '0.4rem', border: '1px solid rgba(0,0,0,0.04)' }}>
                     <span style={{ fontWeight: 700, color: 'var(--text-main)', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis' }}>
                       🗣️ "{alert.text}"
                     </span>
 
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', flexShrink: 0 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', flexShrink: 0 }}>
                       {alert.readTime ? (
-                        <span style={{ fontSize: '0.78rem', color: '#00C853', fontWeight: 800, display: 'inline-flex', alignItems: 'center', gap: '0.25rem', background: 'rgba(0, 200, 83, 0.12)', padding: '0.2rem 0.55rem', borderRadius: '9999px' }}>
-                          <CheckCheck size={15} color="#00C853" /> Lu par {safePatientName} à {alert.readTime}
+                        <span style={{ fontSize: '0.78rem', color: '#00C853', fontWeight: 800, display: 'inline-flex', alignItems: 'center', gap: '0.25rem', background: 'rgba(0, 200, 83, 0.12)', padding: '0.25rem 0.65rem', borderRadius: '9999px' }}>
+                          <CheckCheck size={16} color="#00C853" /> Lu par {safePatientName} à {alert.readTime}
                         </span>
                       ) : (
-                        <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
-                          <span>Envoyé {alert.time}</span> (En attente...)
+                        <span style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '0.3rem', background: 'var(--canvas-bg)', padding: '0.25rem 0.65rem', borderRadius: '9999px' }}>
+                          <span>Envoyé {alert.time}</span> <span style={{ opacity: 0.7 }}>(En attente...)</span>
                         </span>
                       )}
                     </div>
                   </div>
                 ))}
               </div>
-            </div>
-          )}
+            )}
+          </div>
 
           <div className="progress-bar-track" style={{ marginTop: '0.75rem' }}>
             <div className="progress-bar-fill-pink" style={{ width: '100%' }} />
