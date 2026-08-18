@@ -209,6 +209,11 @@ export default function App() {
   // Subscribe to Real-time Cross-Device Events
   useEffect(() => {
     const unsubscribe = RealtimeCloudSync.subscribe((event) => {
+      // Ignore self-sent loopback messages from the sender device
+      if (event.senderDeviceId && event.senderDeviceId === RealtimeCloudSync.getDeviceId()) {
+        return;
+      }
+
       if (event.type === 'SLOT_VALIDATED') {
         const key = `${event.dayKey}-${event.slotKey}`;
         setTakenSlots(prev => ({ ...prev, [key]: true }));

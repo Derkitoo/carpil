@@ -7,6 +7,9 @@ const STORAGE_KEY_FAMILY_CODE = 'carepill_family_code';
 const STORAGE_KEY_TAKEN_SLOTS = 'carepill_taken_slots';
 const STORAGE_KEY_NUDGE = 'carepill_live_nudge';
 
+// Unique Device Session Identifier to prevent self-loopbacks
+const DEVICE_SESSION_ID = `device_${Math.random().toString(36).substring(2, 10)}`;
+
 let activeFamilyCode = (() => {
   try {
     const saved = localStorage.getItem(STORAGE_KEY_FAMILY_CODE);
@@ -169,6 +172,7 @@ function notifySubscribers(data) {
 initWebSocket();
 
 export const RealtimeCloudSync = {
+  getDeviceId: () => DEVICE_SESSION_ID,
   getFamilyCode: () => activeFamilyCode,
 
   setFamilyCode: (newCode) => {
@@ -195,6 +199,7 @@ export const RealtimeCloudSync = {
     const payload = {
       type: 'PING_TEST',
       senderName,
+      senderDeviceId: DEVICE_SESSION_ID,
       timestamp: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
     };
 
@@ -205,8 +210,6 @@ export const RealtimeCloudSync = {
     if (wsInstance && wsInstance.readyState === WebSocket.OPEN) {
       try { wsInstance.send(buildMqttPublishPacket(topic, payloadStr)); } catch (e) {}
     }
-
-    notifySubscribers(payload);
   },
 
   // Publish slot validation event across distant devices
@@ -216,6 +219,7 @@ export const RealtimeCloudSync = {
       dayKey,
       slotKey,
       patientName: patientName || 'Joseph',
+      senderDeviceId: DEVICE_SESSION_ID,
       timestamp: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
     };
 
@@ -235,8 +239,6 @@ export const RealtimeCloudSync = {
     } catch (e) {
       console.warn(e);
     }
-
-    notifySubscribers(payload);
   },
 
   // Publish live voice/text nudge to senior on distant device
@@ -245,6 +247,7 @@ export const RealtimeCloudSync = {
       type: 'NUDGE_RECEIVED',
       textMsg,
       senderName: senderName || 'Enfant',
+      senderDeviceId: DEVICE_SESSION_ID,
       timestamp: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
     };
 
@@ -261,8 +264,6 @@ export const RealtimeCloudSync = {
     } catch (e) {
       console.warn(e);
     }
-
-    notifySubscribers(payload);
   },
 
   // Subscribe to live events
