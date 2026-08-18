@@ -100,6 +100,17 @@ html, body {
   word-break: break-word;
 }
 
+/* Hide all ugly browser scrollbars globally */
+div, nav, section, ul, main, form {
+  -ms-overflow-style: none !important;
+  scrollbar-width: none !important;
+}
+div::-webkit-scrollbar, nav::-webkit-scrollbar, section::-webkit-scrollbar, ul::-webkit-scrollbar, main::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
 img, svg, video, canvas {
   max-width: 100%;
   height: auto;
@@ -310,33 +321,37 @@ button:active {
   color: #FFFFFF;
 }
 
-.segmented-control {
+/* 🧭 RESPONSIVE NAV TAB MENU (NO SCROLLBAR, FLEX WRAP ON MOBILE) */
+.nav-tab-grid {
   display: flex;
-  background: rgba(142, 154, 175, 0.12);
-  padding: 4px;
-  border-radius: 16px;
-  gap: 3px;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
   width: 100%;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
+  max-width: 760px;
+  margin: 0 auto 1.35rem auto;
+  padding: 0.35rem;
+  background: rgba(142, 154, 175, 0.1);
+  border-radius: 20px;
 }
 
-.segmented-option {
-  flex: 1;
-  min-width: fit-content;
-  padding: 0.55rem 0.75rem;
-  border-radius: 13px;
+.nav-tab-item {
+  padding: 0.55rem 0.95rem;
+  border-radius: 9999px;
   font-size: 0.82rem;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--text-secondary);
   background: transparent;
-  text-align: center;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
   white-space: nowrap;
 }
 
-.segmented-option.active {
-  background: #FFFFFF;
-  color: var(--text-main);
-  font-weight: 700;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+.nav-tab-item.active {
+  background: linear-gradient(135deg, var(--header-blue-1), var(--header-blue-2));
+  color: #FFFFFF;
+  box-shadow: 0 4px 14px rgba(0, 153, 255, 0.25);
 }

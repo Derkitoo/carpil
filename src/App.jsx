@@ -334,35 +334,35 @@ export default function App() {
               </button>
             </div>
 
-            {/* Segmented control for Caregiver sub-features */}
-            <div className="segmented-control" style={{ maxWidth: '680px', margin: '0 auto 1.25rem auto', width: '100%' }}>
+            {/* Responsive Pill Tab Navigation Grid (Zero Scrollbar, Flex Wrap) */}
+            <div className="nav-tab-grid">
               <button
                 onClick={() => setCaregiverTab('dashboard')}
-                className={`segmented-option ${caregiverTab === 'dashboard' ? 'active' : ''}`}
+                className={`nav-tab-item ${caregiverTab === 'dashboard' ? 'active' : ''}`}
               >
                 👥 Dashboard Proche
               </button>
               <button
                 onClick={() => setCaregiverTab('scanner')}
-                className={`segmented-option ${caregiverTab === 'scanner' ? 'active' : ''}`}
+                className={`nav-tab-item ${caregiverTab === 'scanner' ? 'active' : ''}`}
               >
                 📸 Scan IA / Ordonnance
               </button>
               <button
                 onClick={() => setCaregiverTab('handScanner')}
-                className={`segmented-option ${caregiverTab === 'handScanner' ? 'active' : ''}`}
+                className={`nav-tab-item ${caregiverTab === 'handScanner' ? 'active' : ''}`}
               >
                 🖐️ Scan Main
               </button>
               <button
                 onClick={() => setCaregiverTab('voiceAgent')}
-                className={`segmented-option ${caregiverTab === 'voiceAgent' ? 'active' : ''}`}
+                className={`nav-tab-item ${caregiverTab === 'voiceAgent' ? 'active' : ''}`}
               >
                 🗣️ Voice AI
               </button>
               <button
                 onClick={() => setCaregiverTab('report')}
-                className={`segmented-option ${caregiverTab === 'report' ? 'active' : ''}`}
+                className={`nav-tab-item ${caregiverTab === 'report' ? 'active' : ''}`}
               >
                 📄 Bilan PDF
               </button>
