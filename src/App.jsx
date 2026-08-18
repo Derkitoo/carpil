@@ -28,6 +28,7 @@ export default function App() {
   const [caregiverTab, setCaregiverTab] = useState('dashboard');
   const [showPairingModal, setShowPairingModal] = useState(false);
   const [showPinModal, setShowPinModal] = useState(false);
+  const [incomingNudge, setIncomingNudge] = useState(null);
 
   // Defensive State Initializers
   const [speechEnabled, setSpeechEnabled] = useState(() => {
@@ -222,7 +223,8 @@ export default function App() {
       }
 
       if (event.type === 'NUDGE_RECEIVED') {
-        showToast(`💬 Message en Direct de votre proche : "${event.textMsg}"`);
+        setIncomingNudge(event);
+        showToast(`💌 Message en Direct de votre proche : "${event.textMsg}"`);
         speakText(`Message de votre enfant : ${event.textMsg}`);
       }
     });
@@ -290,6 +292,8 @@ export default function App() {
             timeSlots={TIME_SLOTS}
             patientName={patientProfile.name}
             onSwitchToCaregiver={() => setShowPinModal(true)}
+            incomingNudge={incomingNudge}
+            onClearNudge={() => setIncomingNudge(null)}
           />
         </main>
       ) : (

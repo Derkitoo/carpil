@@ -1,9 +1,10 @@
 // Real-time Cross-Device Cloud Sync Service for CarePill AI
-// Connects Child (Caregiver) & Senior (Parent) over WebSockets / Cloud Relay
+// Connects Child (Caregiver) & Senior (Parent) over WebSockets / Cloud Relay / BroadcastChannel / Storage
 
 const DEFAULT_FAMILY_CODE = 'CARPIL-8842';
 const STORAGE_KEY_FAMILY_CODE = 'carepill_family_code';
 const STORAGE_KEY_TAKEN_SLOTS = 'carepill_taken_slots';
+const STORAGE_KEY_NUDGE = 'carepill_live_nudge';
 
 let activeFamilyCode = (() => {
   try {
@@ -14,8 +15,7 @@ let activeFamilyCode = (() => {
   }
 })();
 
-// Real-time WebSocket relay fallback using public WebSocket server
-const WS_ENDPOINT = `wss://broker.emqx.io:8084/mqtt`;
+// BroadcastChannel for instant same-browser cross-tab sync
 const localBroadcast = typeof window !== 'undefined' && 'BroadcastChannel' in window
   ? new BroadcastChannel(`carepill_room_${activeFamilyCode}`)
   : null;
@@ -23,11 +23,10 @@ const localBroadcast = typeof window !== 'undefined' && 'BroadcastChannel' in wi
 let subscribers = [];
 let wsInstance = null;
 let isConnected = false;
-let lastPingLatency = 24; // ms mock/measured
+let lastPingLatency = 24;
 
 function initWebSocket() {
   try {
-    // Attempt WebSocket connection to public cloud broker
     const wsUrl = `wss://free.v2.piesocket.com/v3/carepill_channel_${activeFamilyCode}?api_key=VCx2ivJhECHScriptKey`;
     const ws = new WebSocket(wsUrl);
 
@@ -45,14 +44,10 @@ function initWebSocket() {
       }
     };
 
-    ws.onerror = () => {
-      isConnected = false;
-    };
-
+    ws.onerror = () => { isConnected = false; };
     ws.onclose = () => {
       isConnected = false;
-      // Reconnect retry after 5s
-      setTimeout(initWebSocket, 5000);
+      setTimeout(initWebSocket, 4000);
     };
 
     wsInstance = ws;
@@ -66,6 +61,20 @@ if (localBroadcast) {
   localBroadcast.onmessage = (event) => {
     notifySubscribers(event.data);
   };
+}
+
+// Cross-tab Storage Event Listener fallback
+if (typeof window !== 'undefined') {
+  window.addEventListener('storage', (event) => {
+    if (event.key === STORAGE_KEY_NUDGE && event.newValue) {
+      try {
+        const data = JSON.parse(event.newValue);
+        notifySubscribers(data);
+      } catch (e) {
+        console.warn(e);
+      }
+    }
+  });
 }
 
 function notifySubscribers(data) {
@@ -101,7 +110,7 @@ export const RealtimeCloudSync = {
   },
 
   getLiveStatus: () => ({
-    isConnected: true, // Always active via hybrid WS + BroadcastChannel
+    isConnected: true,
     familyCode: activeFamilyCode,
     latencyMs: lastPingLatency
   }),
@@ -116,12 +125,10 @@ export const RealtimeCloudSync = {
       timestamp: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
     };
 
-    // 1. Broadcast locally
     if (localBroadcast) {
       localBroadcast.postMessage(payload);
     }
 
-    // 2. Broadcast via WebSocket if open
     if (wsInstance && wsInstance.readyState === WebSocket.OPEN) {
       try {
         wsInstance.send(JSON.stringify(payload));
@@ -130,7 +137,6 @@ export const RealtimeCloudSync = {
       }
     }
 
-    // 3. Save to localStorage
     try {
       const saved = localStorage.getItem(STORAGE_KEY_TAKEN_SLOTS);
       const parsed = saved ? JSON.parse(saved) : {};
@@ -152,16 +158,25 @@ export const RealtimeCloudSync = {
       timestamp: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
     };
 
+    // 1. BroadcastChannel
     if (localBroadcast) {
       localBroadcast.postMessage(payload);
     }
 
+    // 2. WebSocket
     if (wsInstance && wsInstance.readyState === WebSocket.OPEN) {
       try {
         wsInstance.send(JSON.stringify(payload));
       } catch (e) {
         console.warn('WS Send Error:', e);
       }
+    }
+
+    // 3. Storage event fallback for cross-tab sync
+    try {
+      localStorage.setItem(STORAGE_KEY_NUDGE, JSON.stringify({ ...payload, _id: Date.now() }));
+    } catch (e) {
+      console.warn(e);
     }
 
     notifySubscribers(payload);

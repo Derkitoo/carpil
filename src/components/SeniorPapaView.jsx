@@ -12,7 +12,9 @@ export default function SeniorPapaView({
   speakText, 
   timeSlots = [],
   patientName = 'Joseph',
-  onSwitchToCaregiver
+  onSwitchToCaregiver,
+  incomingNudge,
+  onClearNudge
 }) {
   const [showCallModal, setShowCallModal] = useState(false);
 
@@ -146,6 +148,74 @@ export default function SeniorPapaView({
 
         </div>
       </div>
+
+      {/* 💌 LIVE INCOMING NUDGE MESSAGE FROM CAREGIVER */}
+      {incomingNudge && (
+        <div className="card animate-pulse-gentle" style={{
+          background: 'linear-gradient(135deg, #FF4757, #FF6B81)',
+          color: '#ffffff',
+          borderRadius: '24px',
+          padding: '1.25rem 1.35rem',
+          border: 'none',
+          boxShadow: '0 12px 32px rgba(255, 71, 87, 0.35)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: '1rem',
+          width: '100%',
+          boxSizing: 'border-box'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem', minWidth: 0 }}>
+            <div style={{ fontSize: '2.2rem', flexShrink: 0 }}>💌</div>
+            <div style={{ minWidth: 0 }}>
+              <div style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: 'rgba(255, 255, 255, 0.95)', fontWeight: 800, letterSpacing: '0.04em' }}>
+                MESSAGE EN DIRECT DE VOTRE ENFANT
+              </div>
+              <div style={{ fontSize: '1.2rem', fontWeight: 800, color: '#ffffff', margin: '0.15rem 0', wordBreak: 'break-word' }}>
+                "{incomingNudge.textMsg}"
+              </div>
+              <div style={{ fontSize: '0.78rem', color: 'rgba(255, 255, 255, 0.85)', fontWeight: 600 }}>
+                Reçu à {incomingNudge.timestamp}
+              </div>
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', gap: '0.35rem', flexShrink: 0 }}>
+            <button
+              onClick={() => {
+                if (speakText) speakText(`Message de votre enfant : ${incomingNudge.textMsg}`);
+              }}
+              style={{
+                padding: '0.45rem 0.75rem',
+                borderRadius: '12px',
+                background: '#ffffff',
+                color: '#FF4757',
+                fontWeight: 800,
+                fontSize: '0.82rem'
+              }}
+            >
+              🔊 Rejouer
+            </button>
+
+            {onClearNudge && (
+              <button
+                onClick={onClearNudge}
+                style={{
+                  padding: '0.45rem 0.65rem',
+                  borderRadius: '12px',
+                  background: 'rgba(255, 255, 255, 0.25)',
+                  color: '#ffffff',
+                  border: 'none',
+                  fontWeight: 800,
+                  fontSize: '0.82rem'
+                }}
+              >
+                ✖
+              </button>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* 2. Hero Challenge Card (Mint / Ice Container #EBF5FF with Donut Progress) */}
       <div className="hero-challenge-card">
