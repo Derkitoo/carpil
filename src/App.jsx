@@ -227,8 +227,10 @@ export default function App() {
       }
 
       if (event.type === 'NUDGE_RECEIVED') {
-        // Nudge message MUST ONLY pop up on Senior Papa screen, NOT on Child screen!
         setIncomingNudge(event);
+
+        // AUTOMATIC READ RECEIPT: When message renders on Patient's screen, transmit read receipt immediately!
+        RealtimeCloudSync.publishNudgeReadReceipt(event.textMsg, patientProfile.name);
 
         try {
           confetti({ particleCount: 120, spread: 80, origin: { y: 0.5 } });
@@ -240,7 +242,7 @@ export default function App() {
 
       if (event.type === 'NUDGE_READ_RECEIPT') {
         try {
-          confetti({ particleCount: 60, spread: 50, origin: { y: 0.7 } });
+          confetti({ particleCount: 70, spread: 60, origin: { y: 0.6 } });
         } catch (e) {}
         showToast(`👁️ ACCUSÉ DE LECTURE : ${event.patientName} a lu et écouté votre message à ${event.timestamp} !`);
       }
