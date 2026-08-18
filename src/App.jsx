@@ -84,7 +84,7 @@ export default function App() {
     }
   });
 
-  // FUNCTIONS DEFINED AT TOP (PREVENTS ReferenceError BEFORE INITIALIZATION)
+  // FUNCTIONS DEFINED AT TOP
   function showToast(msg) {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(null), 4500);
@@ -289,17 +289,23 @@ export default function App() {
                   boxShadow: 'var(--shadow-sm)'
                 }}
               >
-                <ArrowLeft size={18} /> Revenir à l'écran de {patientProfile.name} 👴
+                <ArrowLeft size={18} /> Revenir à l'écran de {patientProfile.name}
               </button>
             </div>
 
             {/* Segmented control for Caregiver sub-features */}
-            <div className="segmented-control" style={{ maxWidth: '640px', margin: '0 auto 1.5rem auto', width: '100%' }}>
+            <div className="segmented-control" style={{ maxWidth: '680px', margin: '0 auto 1.5rem auto', width: '100%' }}>
               <button
                 onClick={() => setCaregiverTab('dashboard')}
                 className={`segmented-option ${caregiverTab === 'dashboard' ? 'active' : ''}`}
               >
                 👥 Dashboard Proche
+              </button>
+              <button
+                onClick={() => setCaregiverTab('scanner')}
+                className={`segmented-option ${caregiverTab === 'scanner' ? 'active' : ''}`}
+              >
+                📸 Scan IA / Ordonnance
               </button>
               <button
                 onClick={() => setCaregiverTab('handScanner')}
@@ -333,6 +339,20 @@ export default function App() {
               />
             )}
 
+            {caregiverTab === 'scanner' && (
+              <IAScanner
+                onImportMedications={(newMeds) => {
+                  setMedications(prev => {
+                    const existingNames = prev.map(m => m.name.toLowerCase());
+                    const filteredNew = newMeds.filter(m => !existingNames.includes(m.name.toLowerCase()));
+                    return [...filteredNew, ...prev];
+                  });
+                  setCaregiverTab('dashboard');
+                  showToast("Ordonnance importée et planifiée dans le pilulier !");
+                }}
+              />
+            )}
+
             {caregiverTab === 'handScanner' && (
               <HandPillScanner
                 medications={medications}
@@ -351,16 +371,6 @@ export default function App() {
                 speakText={speakText}
                 timeSlots={TIME_SLOTS}
                 patientName={patientProfile.name}
-              />
-            )}
-
-            {caregiverTab === 'scanner' && (
-              <IAScanner
-                onImportMedications={(newMeds) => {
-                  setMedications(newMeds);
-                  setCaregiverTab('dashboard');
-                  showToast("Ordonnance importée et planifiée dans le pilulier !");
-                }}
               />
             )}
 
