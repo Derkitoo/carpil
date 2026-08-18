@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { 
   Users, Activity, Bell, Calendar, ShieldCheck, Heart, AlertTriangle, 
-  CheckCircle2, Plus, Edit3, MessageSquare, PhoneCall, QrCode, Sparkles, TrendingUp 
+  CheckCircle2, Plus, Edit3, MessageSquare, PhoneCall, QrCode, Sparkles, TrendingUp, Save, Send, Volume2 
 } from 'lucide-react';
 import { PredictiveRiskService } from '../services/predictiveRiskService';
 import PharmacyPassQR from './PharmacyPassQR';
@@ -16,9 +16,18 @@ export default function CaregiverView({
   onSendNotification
 }) {
   const [isEditingProfile, setIsEditingProfile] = useState(false);
-  const [editedProfile, setEditedProfile] = useState(patientProfile);
+  const [editedProfile, setEditedProfile] = useState({
+    name: patientProfile?.name || 'Joseph Martin',
+    age: patientProfile?.age || 78,
+    emergencyContact: patientProfile?.emergencyContact || '06 12 34 56 78',
+    doctor: patientProfile?.doctor || 'Dr Laurent'
+  });
+
   const [symptomInput, setSymptomInput] = useState({ text: '', severity: 'faible' });
   const [noticeMessageInput, setNoticeMessageInput] = useState('');
+  const [sentAlerts, setSentAlerts] = useState([
+    { id: 1, text: "N'oublie pas de prendre tes cachets avec de l'eau ❤️", time: "Aujourd'hui 08:15" }
+  ]);
 
   // Calculate 7-day adherence statistics
   const slotsList = ['Matin', 'Midi', 'Soir', 'Nuit'];
@@ -34,38 +43,34 @@ export default function CaregiverView({
     confidence: 96
   };
 
-  const safePatientName = patientProfile?.name || 'Joseph';
-  const safeAge = patientProfile?.age || '78';
-  const safeContact = patientProfile?.emergencyContact || '06 12 34 56 78';
+  const safePatientName = patientProfile?.name || editedProfile.name;
+  const safeAge = patientProfile?.age || editedProfile.age;
+  const safeContact = patientProfile?.emergencyContact || editedProfile.emergencyContact;
+  const safeDoctor = patientProfile?.doctor || editedProfile.doctor;
 
   const handleProfileSubmit = (e) => {
     e.preventDefault();
-    if (onUpdatePatientProfile) onUpdatePatientProfile(editedProfile);
+    if (onUpdatePatientProfile) {
+      onUpdatePatientProfile(editedProfile);
+    }
     setIsEditingProfile(false);
   };
 
-  const handleAddSymptomSubmit = (e) => {
-    e.preventDefault();
-    if (!symptomInput.text.trim()) return;
+  const handleSendNoticeSubmit = (e, customMsg = null) => {
+    if (e) e.preventDefault();
+    const msg = customMsg || noticeMessageInput;
+    if (!msg || !msg.trim()) return;
 
-    if (onAddSymptom) {
-      onAddSymptom({
-        id: Date.now(),
-        date: new Date().toLocaleDateString('fr-FR'),
-        time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
-        text: symptomInput.text,
-        severity: symptomInput.severity
-      });
+    if (onSendNotification) {
+      onSendNotification(msg.trim());
     }
 
-    setSymptomInput({ text: '', severity: 'faible' });
-  };
+    setSentAlerts(prev => [
+      { id: Date.now(), text: msg.trim(), time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) },
+      ...prev
+    ]);
 
-  const handleSendNoticeSubmit = (e) => {
-    e.preventDefault();
-    if (!noticeMessageInput.trim()) return;
-    if (onSendNotification) onSendNotification(noticeMessageInput);
-    setNoticeMessageInput('');
+    if (!customMsg) setNoticeMessageInput('');
   };
 
   return (
@@ -138,8 +143,8 @@ export default function CaregiverView({
           </div>
         </div>
 
-        {/* Category Card 2: Fiche Patient (Yellow Accent) */}
-        <div className="category-card">
+        {/* Category Card 2: FICHE PATIENT & CONTACT (FONCTIONNELLE) */}
+        <div className="category-card" style={{ gridColumn: isEditingProfile ? '1 / -1' : 'auto' }}>
           <div>
             <div className="icon-pod icon-pod-yellow">
               <Users size={22} />
@@ -150,20 +155,99 @@ export default function CaregiverView({
               </h4>
               <button
                 onClick={() => setIsEditingProfile(!isEditingProfile)}
-                style={{ background: 'transparent', color: 'var(--theme-yellow)', fontWeight: 800, fontSize: '0.82rem', flexShrink: 0 }}
+                style={{
+                  padding: '0.35rem 0.75rem',
+                  borderRadius: '10px',
+                  background: isEditingProfile ? 'var(--canvas-bg)' : 'var(--accent-warning-light)',
+                  color: 'var(--theme-yellow)',
+                  fontWeight: 800,
+                  fontSize: '0.82rem',
+                  flexShrink: 0
+                }}
               >
-                {isEditingProfile ? 'Annuler' : 'Modifier'}
+                {isEditingProfile ? '✖ Fermer' : '✏️ Modifier la Fiche'}
               </button>
             </div>
             
-            <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', fontWeight: 500, marginTop: '0.2rem', wordBreak: 'break-word' }}>
-              {safePatientName} • {safeAge} ans • Tél: {safeContact}
-            </p>
+            {!isEditingProfile ? (
+              <div style={{ marginTop: '0.5rem' }}>
+                <p style={{ fontSize: '0.9rem', fontWeight: 800, color: 'var(--text-main)', margin: '0 0 0.2rem 0' }}>
+                  {safePatientName} ({safeAge} ans)
+                </p>
+                <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', fontWeight: 600, margin: 0 }}>
+                  📞 Urgence : <strong>{safeContact}</strong>
+                </p>
+                <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', fontWeight: 600, margin: '0.15rem 0 0 0' }}>
+                  👨‍⚕️ Médecin : <strong>{safeDoctor}</strong>
+                </p>
+              </div>
+            ) : (
+              /* FORMULAIRE DE MODIFICATION EDITEUR DE FICHE PATIENT */
+              <form onSubmit={handleProfileSubmit} style={{ marginTop: '0.85rem', display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.65rem' }}>
+                  <div>
+                    <label style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--text-secondary)' }}>Nom complet du patient :</label>
+                    <input
+                      type="text"
+                      value={editedProfile.name}
+                      onChange={(e) => setEditedProfile({ ...editedProfile, name: e.target.value })}
+                      style={{ width: '100%', padding: '0.5rem', borderRadius: '10px', border: '1px solid var(--system-card-border)', background: 'var(--canvas-bg)', fontWeight: 700, fontSize: '0.85rem' }}
+                    />
+                  </div>
+                  <div>
+                    <label style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--text-secondary)' }}>Âge :</label>
+                    <input
+                      type="number"
+                      value={editedProfile.age}
+                      onChange={(e) => setEditedProfile({ ...editedProfile, age: e.target.value })}
+                      style={{ width: '100%', padding: '0.5rem', borderRadius: '10px', border: '1px solid var(--system-card-border)', background: 'var(--canvas-bg)', fontWeight: 700, fontSize: '0.85rem' }}
+                    />
+                  </div>
+                  <div>
+                    <label style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--text-secondary)' }}>Téléphone d'urgence :</label>
+                    <input
+                      type="text"
+                      value={editedProfile.emergencyContact}
+                      onChange={(e) => setEditedProfile({ ...editedProfile, emergencyContact: e.target.value })}
+                      style={{ width: '100%', padding: '0.5rem', borderRadius: '10px', border: '1px solid var(--system-card-border)', background: 'var(--canvas-bg)', fontWeight: 700, fontSize: '0.85rem' }}
+                    />
+                  </div>
+                  <div>
+                    <label style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--text-secondary)' }}>Médecin traitant :</label>
+                    <input
+                      type="text"
+                      value={editedProfile.doctor}
+                      onChange={(e) => setEditedProfile({ ...editedProfile, doctor: e.target.value })}
+                      style={{ width: '100%', padding: '0.5rem', borderRadius: '10px', border: '1px solid var(--system-card-border)', background: 'var(--canvas-bg)', fontWeight: 700, fontSize: '0.85rem' }}
+                    />
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  className="btn-primary"
+                  style={{
+                    padding: '0.65rem 1.25rem',
+                    borderRadius: '12px',
+                    fontWeight: 800,
+                    fontSize: '0.88rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '0.4rem',
+                    background: 'var(--theme-yellow)',
+                    marginTop: '0.35rem'
+                  }}
+                >
+                  <Save size={16} /> Enregistrer les Modifications 💾
+                </button>
+              </form>
+            )}
           </div>
 
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.82rem', fontWeight: 700, marginTop: '0.75rem' }}>
-              <span style={{ color: 'var(--text-secondary)' }}>Mise à jour</span>
+              <span style={{ color: 'var(--text-secondary)' }}>Fiche Santé</span>
               <span style={{ color: 'var(--theme-yellow)' }}>Certifiée ✓</span>
             </div>
             <div className="progress-bar-track">
@@ -172,45 +256,91 @@ export default function CaregiverView({
           </div>
         </div>
 
-        {/* Category Card 3: Notifications Vocales (Pink Accent) */}
-        <div className="category-card">
+        {/* Category Card 3: TRANSMISSION D'ALERTE VOCALE (FONCTIONNELLE) */}
+        <div className="category-card" style={{ gridColumn: '1 / -1' }}>
           <div>
             <div className="icon-pod icon-pod-pink">
               <MessageSquare size={22} />
             </div>
             <h4 style={{ fontSize: '1.05rem', fontWeight: 600, color: 'var(--text-main)' }}>
-              Transmission d'Alerte Vocale
+              Transmission d'Alerte Vocale en Direct
             </h4>
             <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', fontWeight: 500, marginTop: '0.2rem' }}>
-              Envoyer un encouragement ou rappel énoncé à voix haute.
+              Rédigez un message : l'application le lira **à voix haute en direct sur le téléphone de {safePatientName}** !
             </p>
           </div>
 
-          <form onSubmit={handleSendNoticeSubmit} style={{ marginTop: '0.75rem', width: '100%' }}>
+          {/* Messages de rappel rapides en 1 clic */}
+          <div style={{ display: 'flex', gap: '0.45rem', flexWrap: 'wrap', marginTop: '0.65rem' }}>
+            <span style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--text-secondary)', alignSelf: 'center' }}>Rappels Rapides :</span>
+            {[
+              "N'oublie pas tes cachets avec un grand verre d'eau ❤️",
+              "Je t'appelle dans 10 minutes ! 📞",
+              "Bravo pour ta prise du matin ! 🌟"
+            ].map((preset, idx) => (
+              <button
+                key={idx}
+                onClick={() => handleSendNoticeSubmit(null, preset)}
+                style={{
+                  padding: '0.35rem 0.7rem',
+                  borderRadius: '9999px',
+                  background: 'rgba(255, 71, 87, 0.1)',
+                  color: 'var(--theme-pink)',
+                  fontSize: '0.78rem',
+                  fontWeight: 700,
+                  border: 'none',
+                  cursor: 'pointer'
+                }}
+              >
+                + {preset}
+              </button>
+            ))}
+          </div>
+
+          {/* Formulaire de saisie du message vocal */}
+          <form onSubmit={(e) => handleSendNoticeSubmit(e)} style={{ marginTop: '0.75rem', width: '100%' }}>
             <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', width: '100%' }}>
               <input
                 type="text"
-                placeholder="Message à lire à voix haute..."
+                placeholder={`Tapez un encouragement pour ${safePatientName}...`}
                 value={noticeMessageInput}
                 onChange={(e) => setNoticeMessageInput(e.target.value)}
                 style={{
-                  flex: 1, minWidth: '140px', padding: '0.5rem 0.75rem', borderRadius: '12px',
+                  flex: 1, minWidth: '200px', padding: '0.6rem 0.85rem', borderRadius: '12px',
                   border: '1px solid var(--system-card-border)', background: 'var(--canvas-bg)',
-                  fontSize: '0.82rem', fontWeight: 600, boxSizing: 'border-box'
+                  fontSize: '0.88rem', fontWeight: 600, boxSizing: 'border-box'
                 }}
               />
               <button
                 type="submit"
                 className="btn-primary"
-                style={{ padding: '0.5rem 0.85rem', borderRadius: '12px', fontSize: '0.82rem', fontWeight: 800, background: 'var(--theme-pink)', flexShrink: 0 }}
+                style={{ padding: '0.6rem 1.1rem', borderRadius: '12px', fontSize: '0.85rem', fontWeight: 800, background: 'var(--theme-pink)', flexShrink: 0, display: 'flex', alignItems: 'center', gap: '0.35rem' }}
               >
-                Envoyer
+                <Send size={16} /> Énoncer à Voix Haute 🗣️
               </button>
             </div>
-            <div className="progress-bar-track">
-              <div className="progress-bar-fill-pink" style={{ width: '85%' }} />
-            </div>
           </form>
+
+          {/* Historique des messages vocaux transmis */}
+          {sentAlerts.length > 0 && (
+            <div style={{ marginTop: '0.85rem', background: 'var(--canvas-bg)', padding: '0.75rem', borderRadius: '14px', border: '1px solid var(--system-card-border)' }}>
+              <div style={{ fontSize: '0.78rem', fontWeight: 800, color: 'var(--text-secondary)', marginBottom: '0.35rem' }}>
+                📡 Derniers Messages Énoncés en Direct :
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+                {sentAlerts.slice(0, 3).map(alert => (
+                  <div key={alert.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.82rem', background: 'var(--card-surface)', padding: '0.45rem 0.75rem', borderRadius: '10px' }}>
+                    <span style={{ fontWeight: 700, color: 'var(--text-main)' }}>🗣️ "{alert.text}"</span>
+                    <span style={{ fontSize: '0.75rem', color: 'var(--accent-green-1)', fontWeight: 800 }}>Envoyé {alert.time} ✓</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div className="progress-bar-track" style={{ marginTop: '0.75rem' }}>
+            <div className="progress-bar-fill-pink" style={{ width: '100%' }} />
+          </div>
         </div>
 
         {/* Category Card 4: Journal des Symptômes (Green Accent) */}
