@@ -9,6 +9,7 @@ import DoctorReport from './components/DoctorReport';
 import CompartmentModal from './components/CompartmentModal';
 import OnboardingModal from './components/OnboardingModal';
 import FamilyPairingModal from './components/FamilyPairingModal';
+import PinCodeModal from './components/PinCodeModal';
 
 import { RealtimeCloudSync } from './services/realtimeCloudSync';
 import { 
@@ -26,6 +27,7 @@ export default function App() {
   const [appMode, setAppMode] = useState('papa');
   const [caregiverTab, setCaregiverTab] = useState('dashboard');
   const [showPairingModal, setShowPairingModal] = useState(false);
+  const [showPinModal, setShowPinModal] = useState(false);
 
   // Defensive State Initializers
   const [speechEnabled, setSpeechEnabled] = useState(() => {
@@ -161,10 +163,18 @@ export default function App() {
     speakText(`Message de votre enfant : ${textMsg}`);
   };
 
-  // Check URL parameters for family pairing link or PWA action
+  // Check URL parameters for role dissociation (?role=senior vs ?role=caregiver) or family pairing link
   useEffect(() => {
     try {
       const urlParams = new URLSearchParams(window.location.search);
+      const roleParam = urlParams.get('role') || urlParams.get('mode');
+
+      if (roleParam === 'caregiver' || roleParam === 'enfant' || roleParam === 'proche') {
+        setAppMode('caregiver');
+      } else if (roleParam === 'senior' || roleParam === 'papa') {
+        setAppMode('papa');
+      }
+
       const pairingCode = urlParams.get('familyCode');
       if (pairingCode && pairingCode.trim().length >= 4) {
         RealtimeCloudSync.setFamilyCode(pairingCode);
@@ -275,7 +285,7 @@ export default function App() {
             speakText={speakText}
             timeSlots={TIME_SLOTS}
             patientName={patientProfile.name}
-            onSwitchToCaregiver={() => setAppMode('caregiver')}
+            onSwitchToCaregiver={() => setShowPinModal(true)}
           />
         </main>
       ) : (
@@ -427,6 +437,17 @@ export default function App() {
         onToast={showToast}
       />
 
+      {/* Security PIN Lock Modal to Switch to Caregiver */}
+      <PinCodeModal
+        isOpen={showPinModal}
+        onClose={() => setShowPinModal(false)}
+        onSuccess={() => {
+          setShowPinModal(false);
+          setAppMode('caregiver');
+          showToast("🔓 Espace Proche / Aidant déverrouillé !");
+        }}
+      />
+
       {/* Compartment Sheet Popup */}
       <CompartmentModal
         modalData={activeModalData}
@@ -445,7 +466,7 @@ export default function App() {
         fontWeight: 600,
         background: 'var(--system-card-bg)'
       }}>
-        CarePill AI © 2026 • Real-time Cloud Sync Enabled 🛰️
+        CarePill AI © 2026 • Dissociated Senior / Caregiver Roles 🔒
       </footer>
 
     </div>
