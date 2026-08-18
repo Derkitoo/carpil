@@ -55,7 +55,6 @@ function buildMqttPublishPacket(topic, messageStr) {
   const msgBytes = strToUtf8(messageStr);
   const variableHeader = [(topicBytes.length >> 8) & 0xff, topicBytes.length & 0xff, ...topicBytes];
   
-  // Encode variable remaining length for arbitrary payload sizes (MQTT 3.1.1 Spec)
   let remainingLen = variableHeader.length + msgBytes.length;
   const remainingLenBytes = [];
   do {
@@ -80,7 +79,6 @@ function parseMqttPublish(buffer) {
     let remainingLen = 0;
     let offset = 1;
 
-    // Decode variable byte remaining length (MQTT 3.1.1 spec)
     do {
       const encodedByte = bytes[offset++];
       remainingLen += (encodedByte & 127) * multiplier;
@@ -107,7 +105,6 @@ function initWebSocket() {
     const topic = `carepill/room/${activeFamilyCode}`;
     const clientId = `CP_${Math.random().toString(36).substring(2, 9)}`;
     
-    // Connect to EMQX WSS Broker with subprotocol 'mqtt' explicitly declared for mobile browsers
     const ws = new WebSocket('wss://broker.emqx.io:8084/mqtt', ['mqtt']);
     ws.binaryType = 'arraybuffer';
 
@@ -280,7 +277,6 @@ export const RealtimeCloudSync = {
     const topic = `carepill/room/${activeFamilyCode}`;
     const payloadStr = JSON.stringify(payload);
 
-    // Broadcast over network ONLY (Do NOT call notifySubscribers locally on sender side!)
     if (localBroadcast) localBroadcast.postMessage(payload);
     if (wsInstance && wsInstance.readyState === WebSocket.OPEN) {
       try { wsInstance.send(buildMqttPublishPacket(topic, payloadStr)); } catch (e) {}
@@ -290,6 +286,25 @@ export const RealtimeCloudSync = {
       localStorage.setItem(STORAGE_KEY_NUDGE, JSON.stringify({ ...payload, _id: Date.now() }));
     } catch (e) {
       console.warn(e);
+    }
+  },
+
+  // Publish read receipt back to caregiver when patient reads or listens to nudge
+  publishNudgeReadReceipt: (textMsg, patientName = 'Joseph') => {
+    const payload = {
+      type: 'NUDGE_READ_RECEIPT',
+      textMsg,
+      patientName,
+      senderDeviceId: DEVICE_SESSION_ID,
+      timestamp: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
+    };
+
+    const topic = `carepill/room/${activeFamilyCode}`;
+    const payloadStr = JSON.stringify(payload);
+
+    if (localBroadcast) localBroadcast.postMessage(payload);
+    if (wsInstance && wsInstance.readyState === WebSocket.OPEN) {
+      try { wsInstance.send(buildMqttPublishPacket(topic, payloadStr)); } catch (e) {}
     }
   },
 

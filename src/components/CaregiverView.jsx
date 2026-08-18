@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Users, Activity, Bell, Calendar, ShieldCheck, Heart, AlertTriangle, 
-  CheckCircle2, Plus, Edit3, MessageSquare, PhoneCall, QrCode, Sparkles, TrendingUp, Save, Send, Volume2 
+  CheckCircle2, Plus, Edit3, MessageSquare, PhoneCall, QrCode, Sparkles, TrendingUp, Save, Send, Volume2, CheckCheck, Eye 
 } from 'lucide-react';
 import { PredictiveRiskService } from '../services/predictiveRiskService';
+import { RealtimeCloudSync } from '../services/realtimeCloudSync';
 import PharmacyPassQR from './PharmacyPassQR';
 
 export default function CaregiverView({ 
@@ -26,8 +27,23 @@ export default function CaregiverView({
   const [symptomInput, setSymptomInput] = useState({ text: '', severity: 'faible' });
   const [noticeMessageInput, setNoticeMessageInput] = useState('');
   const [sentAlerts, setSentAlerts] = useState([
-    { id: 1, text: "N'oublie pas de prendre tes cachets avec de l'eau ❤️", time: "Aujourd'hui 08:15" }
+    { id: 1, text: "N'oublie pas de prendre tes cachets avec de l'eau ❤️", time: "Aujourd'hui 08:15", readTime: "08:16" }
   ]);
+
+  // Listen for live read receipts from patient device
+  useEffect(() => {
+    const unsubscribe = RealtimeCloudSync.subscribe((event) => {
+      if (event.type === 'NUDGE_READ_RECEIPT') {
+        setSentAlerts(prev => prev.map(item => {
+          if (item.text === event.textMsg || !item.readTime) {
+            return { ...item, readTime: event.timestamp };
+          }
+          return item;
+        }));
+      }
+    });
+    return () => unsubscribe();
+  }, []);
 
   // Calculate 7-day adherence statistics
   const slotsList = ['Matin', 'Midi', 'Soir', 'Nuit'];
@@ -66,7 +82,12 @@ export default function CaregiverView({
     }
 
     setSentAlerts(prev => [
-      { id: Date.now(), text: msg.trim(), time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) },
+      { 
+        id: Date.now(), 
+        text: msg.trim(), 
+        time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
+        readTime: null 
+      },
       ...prev
     ]);
 
@@ -182,7 +203,6 @@ export default function CaregiverView({
                 </p>
               </div>
             ) : (
-              /* FORMULAIRE DE MODIFICATION EDITEUR DE FICHE PATIENT */
               <form onSubmit={handleProfileSubmit} style={{ marginTop: '0.85rem', display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.65rem' }}>
                   <div>
@@ -256,21 +276,21 @@ export default function CaregiverView({
           </div>
         </div>
 
-        {/* Category Card 3: TRANSMISSION D'ALERTE VOCALE (FONCTIONNELLE) */}
+        {/* Category Card 3: TRANSMISSION D'ALERTE VOCALE AVEC CONFIRMATION DE LECTURE EN DIRECT */}
         <div className="category-card" style={{ gridColumn: '1 / -1' }}>
           <div>
             <div className="icon-pod icon-pod-pink">
               <MessageSquare size={22} />
             </div>
             <h4 style={{ fontSize: '1.05rem', fontWeight: 600, color: 'var(--text-main)' }}>
-              Transmission d'Alerte Vocale en Direct
+              Transmission d'Alerte Vocale & Confirmation de Lecture (Vu/Lu)
             </h4>
             <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', fontWeight: 500, marginTop: '0.2rem' }}>
-              Rédigez un message : l'application le lira **à voix haute en direct sur le téléphone de {safePatientName}** !
+              Dès que {safePatientName} interagit avec le message sur son téléphone, un **accusé de lecture (Vu/Lu)** s'affiche ici en direct !
             </p>
           </div>
 
-          {/* Messages de rappel rapides en 1 clic */}
+          {/* Preset 1-tap message shortcuts */}
           <div style={{ display: 'flex', gap: '0.45rem', flexWrap: 'wrap', marginTop: '0.65rem' }}>
             <span style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--text-secondary)', alignSelf: 'center' }}>Rappels Rapides :</span>
             {[
@@ -297,7 +317,7 @@ export default function CaregiverView({
             ))}
           </div>
 
-          {/* Formulaire de saisie du message vocal */}
+          {/* Form */}
           <form onSubmit={(e) => handleSendNoticeSubmit(e)} style={{ marginTop: '0.75rem', width: '100%' }}>
             <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', width: '100%' }}>
               <input
@@ -321,17 +341,30 @@ export default function CaregiverView({
             </div>
           </form>
 
-          {/* Historique des messages vocaux transmis */}
+          {/* Live Read Receipt History Log (Accusés de lecture en direct) */}
           {sentAlerts.length > 0 && (
             <div style={{ marginTop: '0.85rem', background: 'var(--canvas-bg)', padding: '0.75rem', borderRadius: '14px', border: '1px solid var(--system-card-border)' }}>
-              <div style={{ fontSize: '0.78rem', fontWeight: 800, color: 'var(--text-secondary)', marginBottom: '0.35rem' }}>
-                📡 Derniers Messages Énoncés en Direct :
+              <div style={{ fontSize: '0.78rem', fontWeight: 800, color: 'var(--text-secondary)', marginBottom: '0.35rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                <Eye size={14} /> Accusés de Lecture en Temps Réel :
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
-                {sentAlerts.slice(0, 3).map(alert => (
-                  <div key={alert.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.82rem', background: 'var(--card-surface)', padding: '0.45rem 0.75rem', borderRadius: '10px' }}>
-                    <span style={{ fontWeight: 700, color: 'var(--text-main)' }}>🗣️ "{alert.text}"</span>
-                    <span style={{ fontSize: '0.75rem', color: 'var(--accent-green-1)', fontWeight: 800 }}>Envoyé {alert.time} ✓</span>
+                {sentAlerts.slice(0, 4).map(alert => (
+                  <div key={alert.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.82rem', background: 'var(--card-surface)', padding: '0.45rem 0.75rem', borderRadius: '10px', flexWrap: 'wrap', gap: '0.4rem' }}>
+                    <span style={{ fontWeight: 700, color: 'var(--text-main)', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      🗣️ "{alert.text}"
+                    </span>
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', flexShrink: 0 }}>
+                      {alert.readTime ? (
+                        <span style={{ fontSize: '0.78rem', color: '#00C853', fontWeight: 800, display: 'inline-flex', alignItems: 'center', gap: '0.25rem', background: 'rgba(0, 200, 83, 0.12)', padding: '0.2rem 0.55rem', borderRadius: '9999px' }}>
+                          <CheckCheck size={15} color="#00C853" /> Lu par {safePatientName} à {alert.readTime}
+                        </span>
+                      ) : (
+                        <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
+                          <span>Envoyé {alert.time}</span> (En attente...)
+                        </span>
+                      )}
+                    </div>
                   </div>
                 ))}
               </div>

@@ -209,11 +209,6 @@ export default function App() {
   // Subscribe to Real-time Cross-Device Events
   useEffect(() => {
     const unsubscribe = RealtimeCloudSync.subscribe((event) => {
-      // Ignore self-sent loopback messages on the sender device
-      if (event.senderDeviceId && event.senderDeviceId === RealtimeCloudSync.getDeviceId()) {
-        return;
-      }
-
       if (event.type === 'SLOT_VALIDATED') {
         const key = `${event.dayKey}-${event.slotKey}`;
         setTakenSlots(prev => ({ ...prev, [key]: true }));
@@ -235,6 +230,13 @@ export default function App() {
 
         showToast(`💌 MESSAGE EN DIRECT DE VOTRE ENFANT : "${event.textMsg}"`);
         speakText(`Message de votre enfant : ${event.textMsg}`);
+      }
+
+      if (event.type === 'NUDGE_READ_RECEIPT') {
+        try {
+          confetti({ particleCount: 60, spread: 50, origin: { y: 0.7 } });
+        } catch (e) {}
+        showToast(`👁️ CONFIRMATION : ${event.patientName} a lu et écouté votre message à ${event.timestamp} !`);
       }
 
       if (event.type === 'PING_TEST') {
@@ -453,6 +455,7 @@ export default function App() {
         nudgeData={incomingNudge}
         onClose={() => setIncomingNudge(null)}
         speakText={speakText}
+        patientName={patientProfile.name}
       />
 
       {/* Onboarding Guide Modal */}

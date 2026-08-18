@@ -1,13 +1,23 @@
 import React from 'react';
 import { Heart, Volume2, X, Sparkles, Check } from 'lucide-react';
+import { RealtimeCloudSync } from '../services/realtimeCloudSync';
 
-export default function NudgeModal({ nudgeData, onClose, speakText }) {
+export default function NudgeModal({ nudgeData, onClose, speakText, patientName = 'Joseph' }) {
   if (!nudgeData) return null;
 
   const handleReplay = () => {
+    // Transmit read confirmation receipt
+    RealtimeCloudSync.publishNudgeReadReceipt(nudgeData.textMsg, patientName);
+    
     if (speakText) {
       speakText(`Message de votre enfant : ${nudgeData.textMsg}`);
     }
+  };
+
+  const handleConfirmRead = () => {
+    // Transmit read confirmation receipt
+    RealtimeCloudSync.publishNudgeReadReceipt(nudgeData.textMsg, patientName);
+    onClose();
   };
 
   return (
@@ -40,7 +50,7 @@ export default function NudgeModal({ nudgeData, onClose, speakText }) {
 
         {/* Close Button */}
         <button
-          onClick={onClose}
+          onClick={handleConfirmRead}
           style={{
             position: 'absolute',
             top: '1.15rem',
@@ -116,7 +126,7 @@ export default function NudgeModal({ nudgeData, onClose, speakText }) {
           </button>
 
           <button
-            onClick={onClose}
+            onClick={handleConfirmRead}
             style={{
               width: '100%',
               padding: '0.85rem',
