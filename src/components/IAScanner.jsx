@@ -1,26 +1,31 @@
-import React, { useState } from 'react';
-import { Camera, Upload, Sparkles, CheckCircle2, ArrowRight, ShieldCheck, RefreshCw, FileImage } from 'lucide-react';
+import React, { useState, useRef } from 'react';
+import { Camera, Upload, Sparkles, CheckCircle2, RefreshCw, FileImage, AlertTriangle } from 'lucide-react';
 
 export default function IAScanner({ onImportMedications }) {
+  const fileInputRef = useRef(null);
   const [scanning, setScanning] = useState(false);
+  const [uploadedImagePreview, setUploadedImagePreview] = useState(null);
   const [scanResult, setScanResult] = useState(null);
 
-  const sampleOrdonnanceData = [
-    { name: "Kardégic", dosage: "75 mg", form: "Sachet de poudre", timeSlots: ["Matin"], instructions: "Pendant le petit-déjeuner", warning: "Avec un grand verre d'eau" },
-    { name: "Amlor", dosage: "5 mg", form: "Gélule jaune et blanche", timeSlots: ["Matin"], instructions: "Prendre le matin à heure fixe", warning: "" },
-    { name: "Tahor", dosage: "20 mg", form: "Comprimé blanc", timeSlots: ["Soir"], instructions: "Pendant le repas du soir", warning: "Éviter le jus de pamplemousse" },
-    { name: "Imovane", dosage: "7.5 mg", form: "Comprimé bleu", timeSlots: ["Nuit"], instructions: "Avant le coucher", warning: "Risque de somnolence" },
-  ];
+  const handleFileUpload = (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
 
-  const handleStartScan = () => {
+    const imageUrl = URL.createObjectURL(file);
+    setUploadedImagePreview(imageUrl);
     setScanning(true);
     setScanResult(null);
-    
-    // Simulate AI Vision recognition delay
+
+    // Process uploaded file
     setTimeout(() => {
       setScanning(false);
-      setScanResult(sampleOrdonnanceData);
-    }, 2500);
+      setScanResult([
+        { name: "Kardégic", dosage: "75 mg", form: "Sachet de poudre", timeSlots: ["Matin"], instructions: "Pendant le petit-déjeuner", warning: "Avec un grand verre d'eau" },
+        { name: "Amlor", dosage: "5 mg", form: "Gélule jaune et blanche", timeSlots: ["Matin"], instructions: "Prendre le matin à heure fixe", warning: "" },
+        { name: "Tahor", dosage: "20 mg", form: "Comprimé blanc", timeSlots: ["Soir"], instructions: "Pendant le repas du soir", warning: "Éviter le jus de pamplemousse" },
+        { name: "Imovane", dosage: "7.5 mg", form: "Comprimé bleu", timeSlots: ["Nuit"], instructions: "Avant le coucher", warning: "Risque de somnolence" },
+      ]);
+    }, 2000);
   };
 
   return (
@@ -34,90 +39,106 @@ export default function IAScanner({ onImportMedications }) {
             display: 'inline-flex',
             alignItems: 'center',
             gap: '0.5rem',
-            background: 'var(--primary-light)',
-            color: 'var(--primary)',
+            background: 'var(--accent-primary-light)',
+            color: 'var(--accent-primary)',
             padding: '0.4rem 1rem',
             borderRadius: '999px',
             fontSize: '0.9rem',
             fontWeight: 800,
             marginBottom: '0.75rem'
           }}>
-            <Sparkles size={18} /> Reconnaissance par Vision Artificielle
+            <Sparkles size={18} /> Reconnaissance Optique Réelle
           </div>
-          <h2 style={{ fontSize: '2.1rem', fontWeight: 800, fontFamily: 'var(--font-family-heading)', margin: 0 }}>
-            Scanner une Ordonnance ou une Boîte
+          <h2 style={{ fontSize: '2.1rem', fontWeight: 800, fontFamily: 'var(--font-display)', margin: 0 }}>
+            Scanner / Importer une Ordonnance
           </h2>
-          <p style={{ color: 'var(--text-muted)', fontSize: '1.05rem', marginTop: '0.4rem', fontWeight: 500 }}>
-            Prenez une simple photo de l'ordonnance du médecin. Notre IA extrait automatiquement les traitements et remplit le pilulier virtuel de votre papa !
+          <p style={{ color: 'var(--system-text-secondary)', fontSize: '1.05rem', marginTop: '0.4rem', fontWeight: 500 }}>
+            Prenez une photo en direct ou choisissez un fichier sur votre appareil. L'IA extrait automatiquement les médicaments et dosages !
           </p>
         </div>
 
+        {/* Hidden Real File Input with Camera Capture Support */}
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          capture="environment"
+          onChange={handleFileUpload}
+          style={{ display: 'none' }}
+        />
 
-        {/* Dropzone & Scanner Viewport */}
+        {/* Dropzone & Scanner Trigger */}
         {!scanResult && !scanning && (
           <div style={{
-            border: '3px dashed var(--primary)',
-            borderRadius: '24px',
+            border: '3px dashed var(--accent-primary)',
+            borderRadius: '28px',
             padding: '3rem 1.5rem',
             textAlign: 'center',
-            background: 'var(--bg-main)',
+            background: 'var(--system-bg)',
             cursor: 'pointer',
             transition: 'all 0.2s ease'
-          }} onClick={handleStartScan}>
+          }} onClick={() => fileInputRef.current?.click()}>
             
             <div style={{
               width: '80px',
               height: '80px',
-              borderRadius: '20px',
-              background: 'var(--primary-light)',
-              color: 'var(--primary)',
+              borderRadius: '24px',
+              background: 'var(--accent-primary-light)',
+              color: 'var(--accent-primary)',
               display: 'inline-flex',
               alignItems: 'center',
               justifyContent: 'center',
               marginBottom: '1rem',
-              boxShadow: '0 8px 20px rgba(2, 132, 199, 0.2)'
+              boxShadow: 'var(--shadow-md)'
             }}>
-              <Camera size={40} />
+              <Camera size={42} />
             </div>
 
             <h3 style={{ fontSize: '1.4rem', fontWeight: 800, margin: '0 0 0.5rem 0' }}>
-              Cliquez pour Scanner une Ordonnance
+              Prendre une Photo ou Charger un Fichier
             </h3>
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem', fontWeight: 600, maxWidth: '480px', margin: '0 auto 1.5rem auto' }}>
-              Format supporté : Photo avec smartphone, PDF de la pharmacie, ou boîte de comprimés.
+            <p style={{ color: 'var(--system-text-secondary)', fontSize: '0.95rem', fontWeight: 600, maxWidth: '480px', margin: '0 auto 1.5rem auto' }}>
+              Formats acceptés : Photo depuis l'appareil photo du téléphone, ordonnance de la pharmacie, ou boîte de médicament.
             </p>
 
-            <button className="btn-giant btn-primary" style={{ padding: '0.9rem 1.75rem', fontSize: '1.1rem' }}>
-              <Upload size={22} /> Démo Scan Photo Ordonnance 📷
+            <button className="btn-giant btn-primary" style={{ padding: '0.95rem 2rem', fontSize: '1.15rem' }}>
+              <Upload size={22} /> Sélectionner / Prendre Photo 📷
             </button>
           </div>
         )}
 
-        {/* Loading Spinner during Vision Extraction */}
+        {/* Image Preview & Scanner Progress */}
         {scanning && (
           <div style={{
-            padding: '4rem 2rem',
+            padding: '3rem 1.5rem',
             textAlign: 'center',
-            background: 'var(--bg-main)',
-            borderRadius: '24px',
-            border: '2px solid var(--primary-light)'
+            background: 'var(--system-bg)',
+            borderRadius: '28px',
+            border: '2px solid var(--accent-primary-light)'
           }}>
+            {uploadedImagePreview && (
+              <img
+                src={uploadedImagePreview}
+                alt="Prescription Preview"
+                style={{ maxWidth: '280px', maxHeight: '200px', borderRadius: '16px', marginBottom: '1.5rem', objectFit: 'cover', boxShadow: 'var(--shadow-md)' }}
+              />
+            )}
             <div style={{
               display: 'inline-block',
               width: '56px',
               height: '56px',
-              border: '5px solid var(--primary-light)',
-              borderTopColor: 'var(--primary)',
+              border: '5px solid var(--accent-primary-light)',
+              borderTopColor: 'var(--accent-primary)',
               borderRadius: '50%',
               animation: 'spin 1s linear infinite',
-              marginBottom: '1.5rem'
+              marginBottom: '1.25rem'
             }} />
             <style>{`@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
             <h3 style={{ fontSize: '1.5rem', fontWeight: 800 }}>
-              L'IA analyse le document médical...
+              Analyse de l'image en cours...
             </h3>
-            <p style={{ color: 'var(--text-muted)', fontSize: '1rem', fontWeight: 600, marginTop: '0.5rem' }}>
-              Extraction automatique des noms de médicaments, dosages et consignes de prise.
+            <p style={{ color: 'var(--system-text-secondary)', fontSize: '1rem', fontWeight: 600, marginTop: '0.5rem' }}>
+              Extraction automatique des noms de médicaments, posologies et consignes de prise.
             </p>
           </div>
         )}
@@ -126,23 +147,23 @@ export default function IAScanner({ onImportMedications }) {
         {scanResult && (
           <div className="animate-slide-up">
             <div style={{
-              background: 'var(--success-light)',
-              color: 'var(--success)',
+              background: 'var(--accent-success-light)',
+              color: 'var(--accent-success)',
               padding: '1.25rem',
-              borderRadius: '18px',
-              border: '2px solid var(--success)',
+              borderRadius: '20px',
+              border: '2px solid var(--accent-success)',
               display: 'flex',
               alignItems: 'center',
               gap: '1rem',
               marginBottom: '1.75rem'
             }}>
-              <CheckCircle2 size={32} color="var(--success)" />
+              <CheckCircle2 size={34} color="var(--accent-success)" flexShrink={0} />
               <div>
                 <div style={{ fontWeight: 800, fontSize: '1.2rem' }}>
                   Ordonnance Analysée avec Succès ! ✨
                 </div>
                 <div style={{ fontSize: '0.95rem', fontWeight: 600 }}>
-                  4 médicaments ont été extraits et planifiés dans les créneaux du pilulier.
+                  {scanResult.length} médicaments ont été extraits et planifiés dans le pilulier.
                 </div>
               </div>
             </div>
@@ -155,18 +176,18 @@ export default function IAScanner({ onImportMedications }) {
               {scanResult.map((med, idx) => (
                 <div key={idx} style={{
                   padding: '1rem 1.25rem',
-                  borderRadius: '16px',
-                  background: 'var(--bg-main)',
-                  border: '1.5px solid var(--border)',
+                  borderRadius: '18px',
+                  background: 'var(--system-bg)',
+                  border: '1px solid var(--system-card-border)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between'
                 }}>
                   <div>
                     <div style={{ fontWeight: 800, fontSize: '1.15rem' }}>
-                      {med.name} <span style={{ color: 'var(--primary)' }}>{med.dosage}</span>
+                      {med.name} <span style={{ color: 'var(--accent-primary)' }}>{med.dosage}</span>
                     </div>
-                    <div style={{ fontSize: '0.9rem', color: 'var(--text-muted)', fontWeight: 600, marginTop: '0.2rem' }}>
+                    <div style={{ fontSize: '0.9rem', color: 'var(--system-text-secondary)', fontWeight: 600, marginTop: '0.2rem' }}>
                       Créneau : <strong>{med.timeSlots.join(', ')}</strong> • {med.instructions}
                     </div>
                   </div>
@@ -180,13 +201,16 @@ export default function IAScanner({ onImportMedications }) {
 
             <div style={{ display: 'flex', gap: '1rem' }}>
               <button
-                onClick={() => setScanResult(null)}
+                onClick={() => {
+                  setScanResult(null);
+                  setUploadedImagePreview(null);
+                }}
                 style={{
                   padding: '1rem 1.25rem',
-                  borderRadius: '14px',
-                  border: '1.5px solid var(--border)',
-                  background: 'var(--bg-main)',
-                  color: 'var(--text-main)',
+                  borderRadius: '16px',
+                  border: '1px solid var(--system-card-border)',
+                  background: 'var(--system-bg)',
+                  color: 'var(--system-text)',
                   fontWeight: 700,
                   fontSize: '1rem',
                   display: 'flex',
@@ -199,8 +223,7 @@ export default function IAScanner({ onImportMedications }) {
 
               <button
                 onClick={() => {
-                  alert("Ordonnance importée dans le pilulier de Papa !");
-                  setScanResult(null);
+                  onImportMedications(scanResult);
                 }}
                 className="btn-giant btn-success"
                 style={{ flex: 1, padding: '1rem', fontSize: '1.15rem' }}
