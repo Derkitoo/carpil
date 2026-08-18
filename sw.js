@@ -1,1 +1,52 @@
-if(!self.define){let e,s={};const i=(i,r)=>(i=new URL(i+".js",r).href,s[i]||new Promise(s=>{if("document"in self){const e=document.createElement("script");e.src=i,e.onload=s,document.head.appendChild(e)}else e=i,importScripts(i),s()}).then(()=>{let e=s[i];if(!e)throw new Error(`Module ${i} didn’t register its module`);return e}));self.define=(r,n)=>{const o=e||("document"in self?document.currentScript.src:"")||location.href;if(s[o])return;let f={};const c=e=>i(e,o),t={module:{uri:o},exports:f,require:c};s[o]=Promise.all(r.map(e=>t[e]||c(e))).then(e=>(n(...e),f))}}define(["./workbox-9c191d2f"],function(e){"use strict";self.skipWaiting(),e.clientsClaim(),e.precacheAndRoute([{url:"shortcut-soir.svg",revision:"caff6096bf5160eef8c6cb8f694217c4"},{url:"shortcut-midi.svg",revision:"c9050ccdd51f4938c24a7b20da53f900"},{url:"shortcut-matin.svg",revision:"7ab5b485264b213f1760227f0338fe86"},{url:"pwa-512x512.svg",revision:"aedff6108095190f77e6bc32eed5a835"},{url:"pwa-192x192.svg",revision:"78b340fde7f26f3d82086a3754fc5f51"},{url:"index.html",revision:"2098fe9cab0ea413653605ebf3ab629a"},{url:"icons.svg",revision:"3b4fcfcf393eca4d264dca4a4663bc37"},{url:"favicon.svg",revision:"7e840862161341271697daa99a40d76b"},{url:"assets/workbox-window.prod.es5-Bd17z0YL.js",revision:null},{url:"assets/purify.es-JEAr64Sr.js",revision:null},{url:"assets/index.es-BWspnks7.js",revision:null},{url:"assets/index-SqgoQegx.css",revision:null},{url:"assets/index--Se_7lRp.js",revision:null},{url:"assets/html2canvas-CfnA4XAX.js",revision:null},{url:"favicon.svg",revision:"7e840862161341271697daa99a40d76b"},{url:"pwa-192x192.svg",revision:"78b340fde7f26f3d82086a3754fc5f51"},{url:"pwa-512x512.svg",revision:"aedff6108095190f77e6bc32eed5a835"},{url:"shortcut-matin.svg",revision:"7ab5b485264b213f1760227f0338fe86"},{url:"shortcut-midi.svg",revision:"c9050ccdd51f4938c24a7b20da53f900"},{url:"shortcut-soir.svg",revision:"caff6096bf5160eef8c6cb8f694217c4"},{url:"manifest.webmanifest",revision:"96fd7b6052b7154a073e55210b43d201"}],{}),e.cleanupOutdatedCaches(),e.registerRoute(new e.NavigationRoute(e.createHandlerBoundToURL("index.html")))});
+const CACHE_NAME = 'carepill-v1-cache';
+const URLS_TO_CACHE = [
+  '/',
+  '/index.html',
+  '/manifest.json'
+];
+
+// Install event
+self.addEventListener('install', (event) => {
+  event.waitUntil(
+    caches.open(CACHE_NAME).then((cache) => {
+      return cache.addAll(URLS_TO_CACHE);
+    })
+  );
+  self.skipWaiting();
+});
+
+// Activate event
+self.addEventListener('activate', (event) => {
+  event.waitUntil(
+    caches.keys().then((cacheNames) => {
+      return Promise.all(
+        cacheNames.map((cache) => {
+          if (cache !== CACHE_NAME) {
+            return caches.delete(cache);
+          }
+        })
+      );
+    })
+  );
+  self.clients.claim();
+});
+
+// Fetch event (Network first with cache fallback for offline resilience)
+self.addEventListener('fetch', (event) => {
+  event.respondWith(
+    fetch(event.request)
+      .then((response) => {
+        // Clone response to cache
+        if (response.status === 200) {
+          const responseClone = response.clone();
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(event.request, responseClone);
+          });
+        }
+        return response;
+      })
+      .catch(() => {
+        return caches.match(event.request);
+      })
+  );
+});
