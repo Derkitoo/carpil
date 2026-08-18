@@ -23,22 +23,37 @@ const localBroadcast = typeof window !== 'undefined' && 'BroadcastChannel' in wi
 let subscribers = [];
 let wsInstance = null;
 let isConnected = false;
-let lastPingLatency = 24;
+let heartbeatInterval = null;
 
 function initWebSocket() {
   try {
+    if (wsInstance) {
+      try { wsInstance.close(); } catch (e) {}
+    }
+
+    // High reliability PieSocket WebSocket channel keyed by activeFamilyCode
     const wsUrl = `wss://free.v2.piesocket.com/v3/carepill_channel_${activeFamilyCode}?api_key=VCx2ivJhECHScriptKey`;
     const ws = new WebSocket(wsUrl);
 
     ws.onopen = () => {
       isConnected = true;
       notifySubscribers({ type: 'STATUS_CHANGE', isConnected: true });
+
+      // Start 20s Ping Heartbeat to keep mobile connection alive
+      if (heartbeatInterval) clearInterval(heartbeatInterval);
+      heartbeatInterval = setInterval(() => {
+        if (ws && ws.readyState === WebSocket.OPEN) {
+          try { ws.send(JSON.stringify({ type: 'PING', timestamp: Date.now() })); } catch (e) {}
+        }
+      }, 20000);
     };
 
     ws.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
-        notifySubscribers(data);
+        if (data.type !== 'PING') {
+          notifySubscribers(data);
+        }
       } catch (e) {
         console.warn('WS Message parse error:', e);
       }
@@ -47,7 +62,8 @@ function initWebSocket() {
     ws.onerror = () => { isConnected = false; };
     ws.onclose = () => {
       isConnected = false;
-      setTimeout(initWebSocket, 4000);
+      if (heartbeatInterval) clearInterval(heartbeatInterval);
+      setTimeout(initWebSocket, 3000);
     };
 
     wsInstance = ws;
@@ -102,9 +118,6 @@ export const RealtimeCloudSync = {
       console.warn(e);
     }
 
-    if (wsInstance) {
-      try { wsInstance.close(); } catch (e) {}
-    }
     initWebSocket();
     notifySubscribers({ type: 'FAMILY_CODE_CHANGED', familyCode: activeFamilyCode });
   },
@@ -112,7 +125,7 @@ export const RealtimeCloudSync = {
   getLiveStatus: () => ({
     isConnected: true,
     familyCode: activeFamilyCode,
-    latencyMs: lastPingLatency
+    latencyMs: 24
   }),
 
   // Publish slot validation event across devices
@@ -158,12 +171,10 @@ export const RealtimeCloudSync = {
       timestamp: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
     };
 
-    // 1. BroadcastChannel
     if (localBroadcast) {
       localBroadcast.postMessage(payload);
     }
 
-    // 2. WebSocket
     if (wsInstance && wsInstance.readyState === WebSocket.OPEN) {
       try {
         wsInstance.send(JSON.stringify(payload));
@@ -172,7 +183,6 @@ export const RealtimeCloudSync = {
       }
     }
 
-    // 3. Storage event fallback for cross-tab sync
     try {
       localStorage.setItem(STORAGE_KEY_NUDGE, JSON.stringify({ ...payload, _id: Date.now() }));
     } catch (e) {
