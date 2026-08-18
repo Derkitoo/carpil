@@ -7,9 +7,6 @@ const STORAGE_KEY_FAMILY_CODE = 'carepill_family_code';
 const STORAGE_KEY_TAKEN_SLOTS = 'carepill_taken_slots';
 const STORAGE_KEY_NUDGE = 'carepill_live_nudge';
 
-// Unique Device Session Identifier to prevent self-loopbacks
-const DEVICE_SESSION_ID = `device_${Math.random().toString(36).substring(2, 10)}`;
-
 let activeFamilyCode = (() => {
   try {
     const saved = localStorage.getItem(STORAGE_KEY_FAMILY_CODE);
@@ -28,7 +25,6 @@ let subscribers = [];
 let wsInstance = null;
 let isConnected = false;
 let heartbeatInterval = null;
-let lastLatencyMs = 18;
 
 // Convert String <-> UTF8
 function strToUtf8(str) { return new TextEncoder().encode(str); }
@@ -172,7 +168,6 @@ function notifySubscribers(data) {
 initWebSocket();
 
 export const RealtimeCloudSync = {
-  getDeviceId: () => DEVICE_SESSION_ID,
   getFamilyCode: () => activeFamilyCode,
 
   setFamilyCode: (newCode) => {
@@ -191,15 +186,14 @@ export const RealtimeCloudSync = {
   getLiveStatus: () => ({
     isConnected,
     familyCode: activeFamilyCode,
-    latencyMs: lastLatencyMs
+    latencyMs: 18
   }),
 
-  // Send an interactive test ping between the 2 phones
+  // Send interactive test ping (EXACT METHOD)
   sendTestPing: (senderName = 'Smartphone 1') => {
     const payload = {
       type: 'PING_TEST',
       senderName,
-      senderDeviceId: DEVICE_SESSION_ID,
       timestamp: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
     };
 
@@ -210,6 +204,8 @@ export const RealtimeCloudSync = {
     if (wsInstance && wsInstance.readyState === WebSocket.OPEN) {
       try { wsInstance.send(buildMqttPublishPacket(topic, payloadStr)); } catch (e) {}
     }
+
+    notifySubscribers(payload);
   },
 
   // Publish slot validation event across distant devices
@@ -219,7 +215,6 @@ export const RealtimeCloudSync = {
       dayKey,
       slotKey,
       patientName: patientName || 'Joseph',
-      senderDeviceId: DEVICE_SESSION_ID,
       timestamp: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
     };
 
@@ -239,16 +234,17 @@ export const RealtimeCloudSync = {
     } catch (e) {
       console.warn(e);
     }
+
+    notifySubscribers(payload);
   },
 
-  // Publish live voice/text nudge to senior on distant device
-  publishNudgeMessage: (textMsg, senderName) => {
+  // Publish live voice/text nudge to senior on distant device (EXACT SAME METHOD AS PING)
+  publishNudgeMessage: (textMsg, senderName = 'Enfant') => {
     const payload = {
       type: 'NUDGE_RECEIVED',
       textMsg,
-      senderName: senderName || 'Enfant',
-      senderDeviceId: DEVICE_SESSION_ID,
-      timestamp: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
+      senderName,
+      timestamp: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
     };
 
     const topic = `carepill/room/${activeFamilyCode}`;
@@ -264,6 +260,8 @@ export const RealtimeCloudSync = {
     } catch (e) {
       console.warn(e);
     }
+
+    notifySubscribers(payload);
   },
 
   // Subscribe to live events

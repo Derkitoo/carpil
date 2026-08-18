@@ -206,37 +206,29 @@ export default function App() {
     }
   }, [patientProfile.name]);
 
-  // Subscribe to Real-time Cross-Device Events
+  // Subscribe to Real-time Cross-Device Events (EXACT METHOD AS PING TEST)
   useEffect(() => {
     const unsubscribe = RealtimeCloudSync.subscribe((event) => {
-      // Ignore self-sent loopback messages from the sender device
-      if (event.senderDeviceId && event.senderDeviceId === RealtimeCloudSync.getDeviceId()) {
-        return;
-      }
-
       if (event.type === 'SLOT_VALIDATED') {
         const key = `${event.dayKey}-${event.slotKey}`;
         setTakenSlots(prev => ({ ...prev, [key]: true }));
 
-        confetti({
-          particleCount: 80,
-          spread: 60,
-          origin: { y: 0.6 }
-        });
+        try {
+          confetti({ particleCount: 80, spread: 60, origin: { y: 0.6 } });
+        } catch (e) {}
 
         showToast(`🟢 EN DIRECT : ${event.patientName} a validé son traitement du ${event.slotKey} à ${event.timestamp} !`);
         speakText(`Notification en direct : ${event.patientName} a pris son traitement du ${event.slotKey}`);
       }
 
       if (event.type === 'NUDGE_RECEIVED') {
-        setIncomingNudge(event);
-        
         try {
-          confetti({ particleCount: 100, spread: 80, origin: { y: 0.5 } });
+          confetti({ particleCount: 120, spread: 80, origin: { y: 0.5 } });
         } catch (e) {}
 
-        showToast(`💌 Message en Direct de votre enfant : "${event.textMsg}"`);
+        showToast(`💌 MESSAGE EN DIRECT DE VOTRE ENFANT : "${event.textMsg}"`);
         speakText(`Message de votre enfant : ${event.textMsg}`);
+        setIncomingNudge(event);
       }
 
       if (event.type === 'PING_TEST') {
