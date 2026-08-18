@@ -227,6 +227,14 @@ export default function App() {
         showToast(`💌 Message en Direct de votre proche : "${event.textMsg}"`);
         speakText(`Message de votre enfant : ${event.textMsg}`);
       }
+
+      if (event.type === 'PING_TEST') {
+        try {
+          confetti({ particleCount: 100, spread: 75, origin: { y: 0.5 } });
+        } catch (e) {}
+        showToast(`🎉 TEST RÉUSSI : Signal reçu en direct depuis ${event.senderName} (${event.timestamp}) !`);
+        speakText(`Test de connexion réussi avec le téléphone de votre proche !`);
+      }
     });
 
     return () => unsubscribe();

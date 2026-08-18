@@ -1,11 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { X, QrCode, Wifi, CheckCircle2, ShieldCheck, Copy, RefreshCw, Smartphone, Camera, ExternalLink } from 'lucide-react';
+import { X, QrCode, Wifi, CheckCircle2, ShieldCheck, Copy, RefreshCw, Smartphone, Camera, ExternalLink, Zap } from 'lucide-react';
 import { RealtimeCloudSync } from '../services/realtimeCloudSync';
 
 export default function FamilyPairingModal({ isOpen, onClose, onToast }) {
   const [familyCode, setFamilyCode] = useState(() => RealtimeCloudSync.getFamilyCode());
   const [inputCode, setInputCode] = useState('');
   const [isCameraActive, setIsCameraActive] = useState(false);
+  const [testResult, setTestResult] = useState(null);
   const videoRef = useRef(null);
   const streamRef = useRef(null);
 
@@ -35,6 +36,12 @@ export default function FamilyPairingModal({ isOpen, onClose, onToast }) {
   const handleCopyLink = () => {
     navigator.clipboard.writeText(pairUrl);
     onToast("📋 Lien de jumelage copié dans le presse-papier !");
+  };
+
+  const handleRunPingTest = () => {
+    RealtimeCloudSync.sendTestPing("Téléphone Enfant/Aidant");
+    setTestResult("⚡ Signal de test envoyé sur le réseau cloud !");
+    onToast("⚡ Signal de test envoyé sur l'autre téléphone !");
   };
 
   const startCameraScan = async () => {
@@ -162,12 +169,48 @@ export default function FamilyPairingModal({ isOpen, onClose, onToast }) {
               background: 'var(--accent-green-1)',
               boxShadow: '0 0 8px var(--accent-green-1)'
             }} />
-            Relais WebSockets En Direct
+            Relais WebSockets En Direct ({familyCode})
           </div>
           <span style={{ fontSize: '0.82rem', fontWeight: 700 }}>
             Latence : {status.latencyMs}ms
           </span>
         </div>
+
+        {/* Test Ping Button */}
+        <button
+          onClick={handleRunPingTest}
+          className="btn-primary"
+          style={{
+            width: '100%',
+            padding: '0.75rem',
+            borderRadius: '14px',
+            fontWeight: 800,
+            fontSize: '0.9rem',
+            marginBottom: '1.15rem',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '0.4rem',
+            background: 'linear-gradient(135deg, #00C853, #2ED573)'
+          }}
+        >
+          <Zap size={18} /> Tester le Signal entre les 2 Téléphones ⚡
+        </button>
+
+        {testResult && (
+          <div style={{
+            background: 'var(--accent-primary-light)',
+            color: 'var(--header-blue-1)',
+            padding: '0.65rem 0.95rem',
+            borderRadius: '12px',
+            fontSize: '0.85rem',
+            fontWeight: 800,
+            textAlign: 'center',
+            marginBottom: '1.15rem'
+          }}>
+            {testResult}
+          </div>
+        )}
 
         {/* REAL SCANNABLE ISO QR CODE CONTAINER */}
         {!isCameraActive ? (
