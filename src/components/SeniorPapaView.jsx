@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { CheckCircle2, Volume2, ShieldCheck, Heart, Sparkles, UserCheck, PhoneCall } from 'lucide-react';
+import { CheckCircle2, Volume2, ShieldCheck, Heart, Sparkles, UserCheck, PhoneCall, Wifi } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import HomeWidgetSimulator from './HomeWidgetSimulator';
 import SmartPillboxNFC from './SmartPillboxNFC';
@@ -11,7 +11,7 @@ export default function SeniorPapaView({
   onValidateSlot, 
   speakText, 
   timeSlots = [],
-  patientName = 'Papa',
+  patientName = 'Joseph',
   onSwitchToCaregiver
 }) {
   const [showCallModal, setShowCallModal] = useState(false);
@@ -59,17 +59,46 @@ export default function SeniorPapaView({
     speakText(text);
   };
 
+  // Get patient initials respectfully for Apple-style avatar badge
+  const patientInitials = patientName
+    ? patientName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
+    : 'JM';
+
   return (
     <div style={{ maxWidth: '600px', margin: '0 auto', minHeight: '80vh', display: 'flex', flexDirection: 'column', justifyContent: 'center' }} className="animate-slide-up">
       
-      {/* Discreet Caregiver Access Toggle Top Bar */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', opacity: 0.85 }}>
-          <span style={{ fontSize: '1.2rem' }}>👴</span>
-          <span style={{ fontSize: '0.95rem', fontWeight: 800, color: 'var(--system-text)' }}>Bonjour {patientName}</span>
+      {/* Respectful Apple-style Senior Profile Top Bar */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.85rem' }}>
+        
+        {/* Respectful Avatar Badge (Replaces displaced emoji) */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+          <div style={{
+            width: '38px',
+            height: '38px',
+            borderRadius: '50%',
+            background: 'linear-gradient(135deg, #0071e3, #38bdf8)',
+            color: '#ffffff',
+            fontWeight: 800,
+            fontSize: '0.9rem',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            boxShadow: '0 2px 8px rgba(0, 113, 227, 0.3)'
+          }}>
+            {patientInitials}
+          </div>
+          
+          <div>
+            <div style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: 'var(--accent-primary)', fontWeight: 800, letterSpacing: '0.04em' }}>
+              PATIENT SUIVI
+            </div>
+            <div style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--system-text)' }}>
+              Espace Personalisé de {patientName}
+            </div>
+          </div>
         </div>
 
-        <div style={{ display: 'flex', gap: '0.4rem' }}>
+        <div style={{ display: 'flex', gap: '0.45rem' }}>
           <button
             onClick={() => setShowCallModal(true)}
             style={{
@@ -85,7 +114,7 @@ export default function SeniorPapaView({
               gap: '0.35rem'
             }}
           >
-            <PhoneCall size={14} /> Rappel IA Vocal
+            <PhoneCall size={14} /> Rappel Vocal
           </button>
 
           <button
@@ -118,7 +147,7 @@ export default function SeniorPapaView({
         patientName={patientName}
       />
 
-      {/* TOUCHLESS NFC PILLBOX SCANNER BANNER */}
+      {/* TOUCHLESS NFC PILLBOX SCANNER BANNER (WITH WRITE & READ SUPPORT) */}
       <SmartPillboxNFC
         onValidateSlot={onValidateSlot}
         speakText={speakText}
@@ -272,7 +301,7 @@ export default function SeniorPapaView({
 
       </div>
 
-      {/* Simulated Automated Caring Phone Call Modal */}
+      {/* Automated Voice Phone Call Modal System */}
       <PhoneCallSimulator
         isOpen={showCallModal}
         onClose={() => setShowCallModal(false)}

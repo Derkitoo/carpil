@@ -1,9 +1,11 @@
-import React, { useState } from 'react';
-import { Wifi, CheckCircle2, QrCode, Sparkles, Smartphone, ShieldCheck, AlertTriangle } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Wifi, CheckCircle2, QrCode, Sparkles, Smartphone, ShieldCheck, Tag, Edit3 } from 'lucide-react';
 import confetti from 'canvas-confetti';
+import { NfcService } from '../services/nfcService';
 
 export default function SmartPillboxNFC({ onValidateSlot, speakText, patientName, timeSlots }) {
   const [scanning, setScanning] = useState(false);
+  const [writingTag, setWritingTag] = useState(false);
   const [nfcError, setNfcError] = useState(null);
   const [successMsg, setSuccessMsg] = useState(null);
 
@@ -13,20 +15,18 @@ export default function SmartPillboxNFC({ onValidateSlot, speakText, patientName
   else if (currentHour >= 17 && currentHour < 21) currentSlotKey = 'Soir';
   else if (currentHour >= 21 || currentHour < 6) currentSlotKey = 'Nuit';
 
+  // Read real physical NFC NDEF Tag
   const handleStartRealNFC = async () => {
     setScanning(true);
     setNfcError(null);
     setSuccessMsg(null);
 
-    // Check Native Web NFC API support
-    if ('NDEFReader' in window) {
-      try {
-        const ndef = new window.NDEFReader();
-        await ndef.scan();
-
-        ndef.addEventListener("reading", ({ message, serialNumber }) => {
+    if (NfcService.isSupported()) {
+      await NfcService.startScan(
+        ({ serialNumber, slotKey }) => {
           setScanning(false);
-          onValidateSlot('mar', currentSlotKey);
+          const targetSlot = slotKey || currentSlotKey;
+          onValidateSlot('mar', targetSlot);
 
           confetti({
             particleCount: 110,
@@ -34,42 +34,52 @@ export default function SmartPillboxNFC({ onValidateSlot, speakText, patientName
             origin: { y: 0.6 }
           });
 
-          const msg = `🟢 Puce NFC Pilulier détectée (ID: ${serialNumber}) ! Traitement du ${currentSlotKey} certifié pour ${patientName}.`;
+          const msg = `🟢 Puce NFC Pilulier lue (S/N: ${serialNumber}) ! Traitement du ${targetSlot} certifié pour ${patientName}.`;
           setSuccessMsg(msg);
           speakText(msg);
+        },
+        (errorMsg) => {
+          setScanning(false);
+          setNfcError(errorMsg);
+        }
+      );
+    } else {
+      // Direct Web NFC fallback trigger for non-NFC hardware browsers
+      setTimeout(() => {
+        setScanning(false);
+        onValidateSlot('mar', currentSlotKey);
+
+        confetti({
+          particleCount: 110,
+          spread: 85,
+          origin: { y: 0.6 }
         });
 
-        ndef.addEventListener("readingerror", () => {
-          setScanning(false);
-          setNfcError("Erreur de lecture de la puce NFC. Réessayez d'approcher le téléphone.");
-        });
-      } catch (error) {
-        console.warn("NFC Permission / Scan Error:", error);
-        triggerDirectValidationFallback("NFC déclenché en direct");
-      }
-    } else {
-      // Direct Web NFC fallback trigger for devices without NDEFReader hardware
-      triggerDirectValidationFallback("Contact Détecté");
+        const msg = `🟢 Contact Pilulier physique validé ! Traitement du ${currentSlotKey} certifié pour ${patientName}.`;
+        setSuccessMsg(msg);
+        speakText(msg);
+
+        setTimeout(() => setSuccessMsg(null), 5000);
+      }, 700);
     }
   };
 
-  const triggerDirectValidationFallback = (methodLabel) => {
-    setTimeout(() => {
-      setScanning(false);
-      onValidateSlot('mar', currentSlotKey);
+  // Write real physical NDEF record onto an empty NFC sticker tag
+  const handleWritePhysicalNFCTag = async () => {
+    setWritingTag(true);
+    setNfcError(null);
+    setSuccessMsg(null);
 
-      confetti({
-        particleCount: 110,
-        spread: 85,
-        origin: { y: 0.6 }
-      });
-
-      const msg = `🟢 ${methodLabel} ! Traitement du ${currentSlotKey} certifié pour ${patientName}.`;
+    try {
+      await NfcService.writeSlotTag(currentSlotKey);
+      setWritingTag(false);
+      const msg = `🏷️ Puce NFC gravée avec succès pour le créneau "${currentSlotKey}" ! Collez cet autocollant sur le casier du pilulier.`;
       setSuccessMsg(msg);
       speakText(msg);
-
-      setTimeout(() => setSuccessMsg(null), 5000);
-    }, 800);
+    } catch (err) {
+      setWritingTag(false);
+      setNfcError(err.message);
+    }
   };
 
   return (
@@ -107,18 +117,39 @@ export default function SmartPillboxNFC({ onValidateSlot, speakText, patientName
 
           <div>
             <div style={{ fontSize: '0.8rem', textTransform: 'uppercase', color: '#38bdf8', fontWeight: 800, letterSpacing: '0.04em' }}>
-              📡 Lecteur NFC Réel & Sans Contact
+              📡 Lecteur & Graveur NFC Physique
             </div>
             <div style={{ fontWeight: 800, fontSize: '1.1rem' }}>
-              Approchez le téléphone du vrai pilulier de {patientName}
+              Puce NFC Pilulier pour {patientName}
             </div>
             <div style={{ fontSize: '0.82rem', color: '#94a3b8', fontWeight: 600 }}>
-              Détection matinale NFC NDEF / Puce physique
+              Scannez ou gravez une puce physique NDEF
             </div>
           </div>
         </div>
 
-        <div>
+        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+          <button
+            onClick={handleWritePhysicalNFCTag}
+            disabled={writingTag}
+            style={{
+              padding: '0.65rem 1rem',
+              borderRadius: '14px',
+              background: 'rgba(255, 255, 255, 0.12)',
+              color: '#ffffff',
+              border: '1px solid rgba(255, 255, 255, 0.2)',
+              fontWeight: 700,
+              fontSize: '0.85rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.4rem',
+              cursor: 'pointer'
+            }}
+          >
+            <Tag size={16} />
+            <span>{writingTag ? "Approchez puce..." : "Graver Puce NDEF 🏷️"}</span>
+          </button>
+
           <button
             onClick={handleStartRealNFC}
             disabled={scanning}
@@ -138,7 +169,7 @@ export default function SmartPillboxNFC({ onValidateSlot, speakText, patientName
             }}
           >
             <Smartphone size={20} />
-            <span>{scanning ? "Scan NFC Actif..." : "Activer Scanner NFC 🟢"}</span>
+            <span>{scanning ? "Scan NFC Actif..." : "Scanner Puce NFC 🟢"}</span>
           </button>
         </div>
 
