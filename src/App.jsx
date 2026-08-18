@@ -10,6 +10,7 @@ import CompartmentModal from './components/CompartmentModal';
 import OnboardingModal from './components/OnboardingModal';
 import FamilyPairingModal from './components/FamilyPairingModal';
 import PinCodeModal from './components/PinCodeModal';
+import NudgeModal from './components/NudgeModal';
 
 import { RealtimeCloudSync } from './services/realtimeCloudSync';
 import { 
@@ -158,10 +159,10 @@ export default function App() {
     showToast("Symptôme enregistré dans le journal de santé !");
   };
 
+  // Called when Caregiver sends a voice nudge message
   const handleSendNotification = (textMsg) => {
     RealtimeCloudSync.publishNudgeMessage(textMsg, 'Enfant');
-    showToast(`Message transmis en direct à ${patientProfile.name} : "${textMsg}"`);
-    speakText(`Message de votre enfant : ${textMsg}`);
+    showToast(`📡 Message transmis en direct au téléphone de ${patientProfile.name} !`);
   };
 
   // Check URL parameters for role dissociation (?role=senior vs ?role=caregiver) or family pairing link
@@ -224,7 +225,12 @@ export default function App() {
 
       if (event.type === 'NUDGE_RECEIVED') {
         setIncomingNudge(event);
-        showToast(`💌 Message en Direct de votre proche : "${event.textMsg}"`);
+        
+        try {
+          confetti({ particleCount: 100, spread: 80, origin: { y: 0.5 } });
+        } catch (e) {}
+
+        showToast(`💌 Message en Direct de votre enfant : "${event.textMsg}"`);
         speakText(`Message de votre enfant : ${event.textMsg}`);
       }
 
@@ -438,6 +444,13 @@ export default function App() {
           </main>
         </>
       )}
+
+      {/* High-Priority Incoming Nudge Popup Modal */}
+      <NudgeModal
+        nudgeData={incomingNudge}
+        onClose={() => setIncomingNudge(null)}
+        speakText={speakText}
+      />
 
       {/* Onboarding Guide Modal */}
       <OnboardingModal
