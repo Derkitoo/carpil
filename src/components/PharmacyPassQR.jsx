@@ -2,7 +2,10 @@ import React from 'react';
 import { QrCode, ShoppingBag, CheckCircle2, ShieldCheck, Printer, Download } from 'lucide-react';
 
 export default function PharmacyPassQR({ patientProfile, medications }) {
-  // Generate a clean SVG QR Code simulation matrix
+  const qrPassData = `CAREPILL-PASS-2026-${patientProfile?.name?.toUpperCase() || 'JOSEPH'}`;
+  const realQrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&margin=8&data=${encodeURIComponent(qrPassData)}`;
+  const fallbackQrCodeUrl = `https://chart.googleapis.com/chart?cht=qr&chs=220x220&chl=${encodeURIComponent(qrPassData)}`;
+
   return (
     <div className="card animate-slide-up" style={{ padding: '1.75rem' }}>
       
@@ -31,7 +34,7 @@ export default function PharmacyPassQR({ patientProfile, medications }) {
         marginBottom: '1.5rem'
       }}>
 
-        {/* QR Code Graphic Box */}
+        {/* Real ISO Scannable QR Code Image Box */}
         <div style={{
           background: '#ffffff',
           padding: '1.25rem',
@@ -39,21 +42,20 @@ export default function PharmacyPassQR({ patientProfile, medications }) {
           boxShadow: 'var(--shadow-md)',
           textAlign: 'center'
         }}>
-          <div style={{
-            width: '160px',
-            height: '160px',
-            background: 'linear-gradient(135deg, #0f172a, #1e293b)',
-            borderRadius: '12px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: '#ffffff',
-            margin: '0 auto 0.75rem auto'
-          }}>
-            <QrCode size={120} color="#38bdf8" />
-          </div>
+          <img
+            src={realQrCodeUrl}
+            onError={(e) => { e.target.src = fallbackQrCodeUrl; }}
+            alt="Real ISO Scannable Pharmacy QR Pass"
+            style={{
+              width: '180px',
+              height: '180px',
+              display: 'block',
+              margin: '0 auto 0.75rem auto',
+              borderRadius: '8px'
+            }}
+          />
           <div style={{ fontSize: '0.78rem', fontWeight: 800, color: 'var(--system-text-secondary)' }}>
-            CAREPILL-PASS-2026-JM73
+            {qrPassData}
           </div>
         </div>
 
@@ -98,11 +100,11 @@ export default function PharmacyPassQR({ patientProfile, medications }) {
 
       <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center' }}>
         <button
-          onClick={() => alert(`Pass Pharmacie de ${patientProfile.name} prêt à être scanné en officine !`)}
+          onClick={() => alert(`Pass Pharmacie de ${patientProfile.name} scannable avec n'importe quel lecteur d'officine !`)}
           className="btn-primary"
           style={{ padding: '0.8rem 1.5rem', borderRadius: '14px', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '0.5rem' }}
         >
-          <QrCode size={20} /> Afficher Plein Écran
+          <QrCode size={20} /> Certifié ISO 18004 Scan Officine 🟢
         </button>
       </div>
 

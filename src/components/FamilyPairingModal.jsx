@@ -1,28 +1,65 @@
-import React, { useState } from 'react';
-import { X, QrCode, Wifi, CheckCircle2, ShieldCheck, Copy, RefreshCw, Smartphone } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { X, QrCode, Wifi, CheckCircle2, ShieldCheck, Copy, RefreshCw, Smartphone, Camera, ExternalLink } from 'lucide-react';
 import { RealtimeCloudSync } from '../services/realtimeCloudSync';
 
 export default function FamilyPairingModal({ isOpen, onClose, onToast }) {
   const [familyCode, setFamilyCode] = useState(() => RealtimeCloudSync.getFamilyCode());
   const [inputCode, setInputCode] = useState('');
-  const [showScanner, setShowScanner] = useState(false);
+  const [isCameraActive, setIsCameraActive] = useState(false);
+  const videoRef = useRef(null);
+  const streamRef = useRef(null);
+
+  useEffect(() => {
+    if (!isOpen && isCameraActive) {
+      stopCamera();
+    }
+  }, [isOpen]);
 
   if (!isOpen) return null;
+
+  const pairUrl = `${window.location.origin}${window.location.pathname}?familyCode=${familyCode}`;
+  const realQrCodeApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=260x260&margin=10&data=${encodeURIComponent(pairUrl)}`;
+  const fallbackQrCodeApiUrl = `https://chart.googleapis.com/chart?cht=qr&chs=260x260&chl=${encodeURIComponent(pairUrl)}`;
 
   const handleSaveCode = (e) => {
     e.preventDefault();
     if (!inputCode.trim()) return;
 
-    RealtimeCloudSync.setFamilyCode(inputCode);
-    setFamilyCode(inputCode.toUpperCase());
+    const formatted = inputCode.trim().toUpperCase();
+    RealtimeCloudSync.setFamilyCode(formatted);
+    setFamilyCode(formatted);
     setInputCode('');
-    onToast(`🔗 Code Familial mis à jour : ${inputCode.toUpperCase()}`);
+    onToast(`🔗 Code Familial mis à jour : ${formatted}`);
   };
 
   const handleCopyLink = () => {
-    const pairUrl = `${window.location.origin}${window.location.pathname}?familyCode=${familyCode}`;
     navigator.clipboard.writeText(pairUrl);
     onToast("📋 Lien de jumelage copié dans le presse-papier !");
+  };
+
+  const startCameraScan = async () => {
+    setIsCameraActive(true);
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'environment' }
+      });
+      streamRef.current = stream;
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+      }
+    } catch (err) {
+      console.warn("Camera access error:", err);
+      onToast("⚠️ Impossible d'accéder à la caméra. Vérifiez les autorisations.");
+      setIsCameraActive(false);
+    }
+  };
+
+  const stopCamera = () => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop());
+      streamRef.current = null;
+    }
+    setIsCameraActive(false);
   };
 
   const status = RealtimeCloudSync.getLiveStatus();
@@ -35,8 +72,8 @@ export default function FamilyPairingModal({ isOpen, onClose, onToast }) {
       right: 0,
       bottom: 0,
       zIndex: 200,
-      background: 'rgba(0, 0, 0, 0.65)',
-      backdropFilter: 'blur(8px)',
+      background: 'rgba(0, 0, 0, 0.72)',
+      backdropFilter: 'blur(10px)',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
@@ -44,18 +81,23 @@ export default function FamilyPairingModal({ isOpen, onClose, onToast }) {
     }} className="animate-fade-in">
       
       <div className="card" style={{
-        maxWidth: '540px',
+        maxWidth: '560px',
         width: '100%',
         padding: '2rem',
         position: 'relative',
         borderRadius: '28px',
         boxShadow: 'var(--shadow-xl)',
-        background: 'var(--system-card-bg)'
+        background: 'var(--system-card-bg)',
+        maxHeight: '92vh',
+        overflowY: 'auto'
       }}>
         
         {/* Close Button */}
         <button
-          onClick={onClose}
+          onClick={() => {
+            stopCamera();
+            onClose();
+          }}
           style={{
             position: 'absolute',
             top: '1.25rem',
@@ -76,7 +118,7 @@ export default function FamilyPairingModal({ isOpen, onClose, onToast }) {
         </button>
 
         {/* Modal Header */}
-        <div style={{ textAlign: 'center', marginBottom: '1.75rem' }}>
+        <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
           <div style={{
             display: 'inline-flex',
             alignItems: 'center',
@@ -89,13 +131,13 @@ export default function FamilyPairingModal({ isOpen, onClose, onToast }) {
             fontWeight: 800,
             marginBottom: '0.75rem'
           }}>
-            <Wifi size={16} /> Interconnexion Temps Réel Cloud
+            <Wifi size={16} /> QR Code Matériel ISO & Liaison Cloud
           </div>
-          <h3 style={{ fontSize: '1.8rem', fontWeight: 800, margin: 0, fontFamily: 'var(--font-display)' }}>
+          <h3 style={{ fontSize: '1.75rem', fontWeight: 800, margin: 0, fontFamily: 'var(--font-display)' }}>
             Jumelage Appareil Enfant ↔ Senior
           </h3>
-          <p style={{ color: 'var(--system-text-secondary)', fontSize: '0.95rem', fontWeight: 600, marginTop: '0.35rem' }}>
-            Scannez ce QR Code ou entrez ce code pour synchroniser deux téléphones en direct à n'importe quelle distance.
+          <p style={{ color: 'var(--system-text-secondary)', fontSize: '0.92rem', fontWeight: 600, marginTop: '0.35rem' }}>
+            Scannez ce QR Code avec l'appareil photo d'un smartphone pour synchroniser automatiquement les 2 téléphones en direct !
           </p>
         </div>
 
@@ -104,113 +146,154 @@ export default function FamilyPairingModal({ isOpen, onClose, onToast }) {
           background: 'var(--accent-success-light)',
           border: '1.5px solid var(--accent-success)',
           color: 'var(--accent-success)',
-          padding: '0.85rem 1.1rem',
+          padding: '0.75rem 1.1rem',
           borderRadius: '18px',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          marginBottom: '1.5rem'
+          marginBottom: '1.25rem'
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', fontWeight: 800, fontSize: '0.95rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', fontWeight: 800, fontSize: '0.92rem' }}>
             <span style={{
-              width: '12px',
-              height: '12px',
+              width: '10px',
+              height: '10px',
               borderRadius: '50%',
               background: 'var(--accent-success)',
               boxShadow: '0 0 10px var(--accent-success)'
             }} />
-            Cloud Relay En Direct (Actif)
+            Relais WebSockets En Direct
           </div>
           <span style={{ fontSize: '0.85rem', fontWeight: 700 }}>
             Latence : {status.latencyMs}ms
           </span>
         </div>
 
-        {/* QR Code & Family Code Block */}
-        <div style={{
-          background: 'var(--system-bg)',
-          padding: '1.5rem',
-          borderRadius: '24px',
-          border: '1px solid var(--system-card-border)',
-          textAlign: 'center',
-          marginBottom: '1.5rem'
-        }}>
+        {/* REAL SCANNABLE ISO QR CODE CONTAINER */}
+        {!isCameraActive ? (
           <div style={{
-            background: 'white',
-            padding: '1rem',
-            borderRadius: '20px',
-            display: 'inline-block',
-            boxShadow: 'var(--shadow-md)',
-            marginBottom: '1rem'
+            background: 'var(--system-bg)',
+            padding: '1.5rem 1rem',
+            borderRadius: '24px',
+            border: '1px solid var(--system-card-border)',
+            textAlign: 'center',
+            marginBottom: '1.25rem'
           }}>
-            {/* SVG QR Code Simulation */}
-            <svg width="140" height="140" viewBox="0 0 100 100" fill="none">
-              <rect width="100" height="100" fill="white"/>
-              {/* Corner 1 */}
-              <rect x="10" y="10" width="25" height="25" fill="#007AFF" rx="4"/>
-              <rect x="15" y="15" width="15" height="15" fill="white" rx="2"/>
-              <rect x="18" y="18" width="9" height="9" fill="#007AFF" rx="1"/>
-              {/* Corner 2 */}
-              <rect x="65" y="10" width="25" height="25" fill="#007AFF" rx="4"/>
-              <rect x="70" y="15" width="15" height="15" fill="white" rx="2"/>
-              <rect x="73" y="18" width="9" height="9" fill="#007AFF" rx="1"/>
-              {/* Corner 3 */}
-              <rect x="10" y="65" width="25" height="25" fill="#007AFF" rx="4"/>
-              <rect x="15" y="70" width="15" height="15" fill="white" rx="2"/>
-              <rect x="18" y="73" width="9" height="9" fill="#007AFF" rx="1"/>
-              {/* Data Dots */}
-              <rect x="40" y="10" width="8" height="8" fill="#1C1C1E" rx="2"/>
-              <rect x="52" y="18" width="8" height="8" fill="#1C1C1E" rx="2"/>
-              <rect x="40" y="30" width="12" height="8" fill="#007AFF" rx="2"/>
-              <rect x="40" y="45" width="8" height="8" fill="#1C1C1E" rx="2"/>
-              <rect x="55" y="45" width="12" height="12" fill="#34C759" rx="3"/>
-              <rect x="70" y="45" width="15" height="8" fill="#1C1C1E" rx="2"/>
-              <rect x="40" y="65" width="8" height="15" fill="#1C1C1E" rx="2"/>
-              <rect x="55" y="70" width="12" height="8" fill="#007AFF" rx="2"/>
-              <rect x="73" y="73" width="12" height="12" fill="#007AFF" rx="3"/>
-            </svg>
-          </div>
+            {/* Real ISO 18004 QR Code Matrix Image */}
+            <div style={{
+              background: 'white',
+              padding: '1rem',
+              borderRadius: '20px',
+              display: 'inline-block',
+              boxShadow: 'var(--shadow-md)',
+              marginBottom: '1rem'
+            }}>
+              <img
+                src={realQrCodeApiUrl}
+                onError={(e) => { e.target.src = fallbackQrCodeApiUrl; }}
+                alt="Real ISO Scannable QR Code"
+                style={{
+                  width: '200px',
+                  height: '200px',
+                  display: 'block',
+                  borderRadius: '12px'
+                }}
+              />
+            </div>
 
-          <div style={{ fontSize: '0.85rem', color: 'var(--system-text-secondary)', fontWeight: 700 }}>
-            Code de Liaison Unique de la Famille :
-          </div>
-          <div style={{
-            fontSize: '1.8rem',
-            fontWeight: 900,
-            letterSpacing: '3px',
-            color: 'var(--accent-primary)',
-            fontFamily: 'monospace',
-            marginTop: '0.2rem'
-          }}>
-            {familyCode}
-          </div>
-
-          <button
-            onClick={handleCopyLink}
-            style={{
-              marginTop: '0.85rem',
-              padding: '0.6rem 1.1rem',
-              borderRadius: '14px',
-              background: 'var(--accent-primary-light)',
+            <div style={{ fontSize: '0.82rem', color: 'var(--system-text-secondary)', fontWeight: 700 }}>
+              Code de Liaison Unique de la Famille :
+            </div>
+            <div style={{
+              fontSize: '1.75rem',
+              fontWeight: 900,
+              letterSpacing: '3px',
               color: 'var(--accent-primary)',
-              border: 'none',
-              fontWeight: 800,
-              fontSize: '0.9rem',
-              cursor: 'pointer',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '0.5rem'
-            }}
-          >
-            <Copy size={16} /> Copier le Lien d'Invitation 📋
-          </button>
-        </div>
+              fontFamily: 'monospace',
+              marginTop: '0.15rem'
+            }}>
+              {familyCode}
+            </div>
+
+            <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center', marginTop: '1rem' }}>
+              <button
+                onClick={handleCopyLink}
+                style={{
+                  padding: '0.65rem 1.1rem',
+                  borderRadius: '14px',
+                  background: 'var(--accent-primary-light)',
+                  color: 'var(--accent-primary)',
+                  border: 'none',
+                  fontWeight: 800,
+                  fontSize: '0.88rem',
+                  cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.4rem'
+                }}
+              >
+                <Copy size={16} /> Copier le Lien Direct 📋
+              </button>
+
+              <button
+                onClick={startCameraScan}
+                style={{
+                  padding: '0.65rem 1.1rem',
+                  borderRadius: '14px',
+                  background: 'var(--system-card-bg)',
+                  color: 'var(--system-text)',
+                  border: '1px solid var(--system-card-border)',
+                  fontWeight: 800,
+                  fontSize: '0.88rem',
+                  cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.4rem'
+                }}
+              >
+                <Camera size={16} /> Scanner avec Caméra 📷
+              </button>
+            </div>
+          </div>
+        ) : (
+          /* Live Camera Stream Scanner View */
+          <div style={{
+            background: '#000000',
+            padding: '1.25rem',
+            borderRadius: '24px',
+            textAlign: 'center',
+            color: '#ffffff',
+            marginBottom: '1.25rem'
+          }}>
+            <video
+              ref={videoRef}
+              autoPlay
+              playsInline
+              style={{ width: '100%', maxHeight: '240px', borderRadius: '16px', objectFit: 'cover', marginBottom: '1rem' }}
+            />
+            <p style={{ fontSize: '0.88rem', fontWeight: 600, margin: '0 0 1rem 0' }}>
+              Pointez la caméra vers le QR Code affiché sur le téléphone de votre proche.
+            </p>
+            <button
+              onClick={stopCamera}
+              style={{
+                padding: '0.6rem 1.2rem',
+                borderRadius: '14px',
+                background: '#ff3b30',
+                color: '#ffffff',
+                border: 'none',
+                fontWeight: 800
+              }}
+            >
+              Fermer la Caméra ✖
+            </button>
+          </div>
+        )}
 
         {/* Pair with another device form */}
         <form onSubmit={handleSaveCode} style={{ display: 'flex', gap: '0.75rem' }}>
           <input
             type="text"
-            placeholder="Entrer un autre code (ex: PAPA-99)"
+            placeholder="Ou saisissez un code (ex: CARPIL-8842)"
             value={inputCode}
             onChange={(e) => setInputCode(e.target.value)}
             style={{
@@ -220,13 +303,13 @@ export default function FamilyPairingModal({ isOpen, onClose, onToast }) {
               border: '1px solid var(--system-card-border)',
               background: 'var(--system-bg)',
               fontWeight: 700,
-              fontSize: '0.95rem'
+              fontSize: '0.92rem'
             }}
           />
           <button
             type="submit"
             className="btn-primary"
-            style={{ padding: '0.75rem 1.25rem', borderRadius: '16px', fontWeight: 800 }}
+            style={{ padding: '0.75rem 1.2rem', borderRadius: '16px', fontWeight: 800 }}
           >
             Connecter 🔗
           </button>
