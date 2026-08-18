@@ -7,6 +7,9 @@ const STORAGE_KEY_FAMILY_CODE = 'carepill_family_code';
 const STORAGE_KEY_TAKEN_SLOTS = 'carepill_taken_slots';
 const STORAGE_KEY_NUDGE = 'carepill_live_nudge';
 
+// Unique Device Session Identifier to identify sender vs receiver
+const DEVICE_SESSION_ID = `device_${Math.random().toString(36).substring(2, 10)}`;
+
 let activeFamilyCode = (() => {
   try {
     const saved = localStorage.getItem(STORAGE_KEY_FAMILY_CODE);
@@ -51,19 +54,46 @@ function buildMqttPublishPacket(topic, messageStr) {
   const topicBytes = strToUtf8(topic);
   const msgBytes = strToUtf8(messageStr);
   const variableHeader = [(topicBytes.length >> 8) & 0xff, topicBytes.length & 0xff, ...topicBytes];
-  const remainingLen = variableHeader.length + msgBytes.length;
-  return new Uint8Array([0x30, remainingLen, ...variableHeader, ...msgBytes]);
+  
+  // Encode variable remaining length for arbitrary payload sizes (MQTT 3.1.1 Spec)
+  let remainingLen = variableHeader.length + msgBytes.length;
+  const remainingLenBytes = [];
+  do {
+    let digit = remainingLen % 128;
+    remainingLen = Math.floor(remainingLen / 128);
+    if (remainingLen > 0) {
+      digit |= 0x80;
+    }
+    remainingLenBytes.push(digit);
+  } while (remainingLen > 0);
+
+  return new Uint8Array([0x30, ...remainingLenBytes, ...variableHeader, ...msgBytes]);
 }
 
+// Robust MQTT 3.1.1 Variable Length Header Decoder
 function parseMqttPublish(buffer) {
   try {
     const bytes = new Uint8Array(buffer);
     if ((bytes[0] & 0xf0) !== 0x30) return null;
-    const topicLen = (bytes[2] << 8) | bytes[3];
-    const payloadStart = 4 + topicLen;
-    const payloadBytes = bytes.subarray(payloadStart);
+
+    let multiplier = 1;
+    let remainingLen = 0;
+    let offset = 1;
+
+    // Decode variable byte remaining length (MQTT 3.1.1 spec)
+    do {
+      const encodedByte = bytes[offset++];
+      remainingLen += (encodedByte & 127) * multiplier;
+      multiplier *= 128;
+    } while ((bytes[offset - 1] & 128) !== 0 && offset < 5);
+
+    const topicLen = (bytes[offset] << 8) | bytes[offset + 1];
+    offset += 2 + topicLen;
+
+    const payloadBytes = bytes.subarray(offset);
     return JSON.parse(utf8ToStr(payloadBytes));
   } catch (e) {
+    console.warn("MQTT Parse Publish Error:", e);
     return null;
   }
 }
@@ -168,6 +198,7 @@ function notifySubscribers(data) {
 initWebSocket();
 
 export const RealtimeCloudSync = {
+  getDeviceId: () => DEVICE_SESSION_ID,
   getFamilyCode: () => activeFamilyCode,
 
   setFamilyCode: (newCode) => {
@@ -189,11 +220,12 @@ export const RealtimeCloudSync = {
     latencyMs: 18
   }),
 
-  // Send interactive test ping (EXACT METHOD)
+  // Send an interactive test ping between the 2 phones
   sendTestPing: (senderName = 'Smartphone 1') => {
     const payload = {
       type: 'PING_TEST',
       senderName,
+      senderDeviceId: DEVICE_SESSION_ID,
       timestamp: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
     };
 
@@ -204,8 +236,6 @@ export const RealtimeCloudSync = {
     if (wsInstance && wsInstance.readyState === WebSocket.OPEN) {
       try { wsInstance.send(buildMqttPublishPacket(topic, payloadStr)); } catch (e) {}
     }
-
-    notifySubscribers(payload);
   },
 
   // Publish slot validation event across distant devices
@@ -215,6 +245,7 @@ export const RealtimeCloudSync = {
       dayKey,
       slotKey,
       patientName: patientName || 'Joseph',
+      senderDeviceId: DEVICE_SESSION_ID,
       timestamp: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
     };
 
@@ -234,22 +265,22 @@ export const RealtimeCloudSync = {
     } catch (e) {
       console.warn(e);
     }
-
-    notifySubscribers(payload);
   },
 
-  // Publish live voice/text nudge to senior on distant device (EXACT SAME METHOD AS PING)
+  // Publish live voice/text nudge to senior on distant device
   publishNudgeMessage: (textMsg, senderName = 'Enfant') => {
     const payload = {
       type: 'NUDGE_RECEIVED',
       textMsg,
       senderName,
+      senderDeviceId: DEVICE_SESSION_ID,
       timestamp: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
     };
 
     const topic = `carepill/room/${activeFamilyCode}`;
     const payloadStr = JSON.stringify(payload);
 
+    // Broadcast over network ONLY (Do NOT call notifySubscribers locally on sender side!)
     if (localBroadcast) localBroadcast.postMessage(payload);
     if (wsInstance && wsInstance.readyState === WebSocket.OPEN) {
       try { wsInstance.send(buildMqttPublishPacket(topic, payloadStr)); } catch (e) {}
@@ -260,8 +291,6 @@ export const RealtimeCloudSync = {
     } catch (e) {
       console.warn(e);
     }
-
-    notifySubscribers(payload);
   },
 
   // Subscribe to live events

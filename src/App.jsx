@@ -206,9 +206,14 @@ export default function App() {
     }
   }, [patientProfile.name]);
 
-  // Subscribe to Real-time Cross-Device Events (EXACT METHOD AS PING TEST)
+  // Subscribe to Real-time Cross-Device Events
   useEffect(() => {
     const unsubscribe = RealtimeCloudSync.subscribe((event) => {
+      // Ignore self-sent loopback messages on the sender device
+      if (event.senderDeviceId && event.senderDeviceId === RealtimeCloudSync.getDeviceId()) {
+        return;
+      }
+
       if (event.type === 'SLOT_VALIDATED') {
         const key = `${event.dayKey}-${event.slotKey}`;
         setTakenSlots(prev => ({ ...prev, [key]: true }));
@@ -222,13 +227,14 @@ export default function App() {
       }
 
       if (event.type === 'NUDGE_RECEIVED') {
+        setIncomingNudge(event);
+
         try {
           confetti({ particleCount: 120, spread: 80, origin: { y: 0.5 } });
         } catch (e) {}
 
         showToast(`💌 MESSAGE EN DIRECT DE VOTRE ENFANT : "${event.textMsg}"`);
         speakText(`Message de votre enfant : ${event.textMsg}`);
-        setIncomingNudge(event);
       }
 
       if (event.type === 'PING_TEST') {
